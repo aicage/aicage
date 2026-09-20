@@ -1,0 +1,17 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "enabledManagers": ["github-actions", "pep621", "pip_requirements"],
+  "labels": ["dependencies"],
+  "packageRules": [
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions",
+      "minimumReleaseAge": "3 days"
+    },
+    {
+      "matchManagers": ["pep621", "pip_requirements"],
+      "groupName": "pip",
+      "minimumReleaseAge": "3 days"
+    }
+  ]
+}
