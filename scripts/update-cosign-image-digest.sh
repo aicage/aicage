@@ -8,8 +8,8 @@ digest="$(
     --output json \
     --certificate-identity keyless@projectsigstore.iam.gserviceaccount.com \
     --certificate-oidc-issuer https://accounts.google.com \
-    "${COSIGN_IMAGE}" \
-    | jq -er '.[0].critical.image["docker-manifest-digest"]'
+    "${COSIGN_IMAGE}" |
+    jq -er '.[0].critical.image["docker-manifest-digest"]'
 )"
 
 if [[ ! "${digest}" =~ ^sha256:[0-9a-f]{64}$ ]]; then
