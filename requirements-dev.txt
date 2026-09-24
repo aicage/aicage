@@ -12,7 +12,7 @@ pytest-cov>=7.1.0,<8
 pywinpty>=3.0.0,<4; platform_system == "Windows"
 ruff>=0.16.8,<1
 yamllint>=1.38.0,<2
-yq>=4.1.2,<5
+yq>=4.2.0,<5
 # types
 types-docker>=7.2.0.20260827,<8
 types-jsonschema>=4.26.0.20260518,<5
