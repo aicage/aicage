@@ -16,7 +16,7 @@ jobs:
           persist-credentials: false
 
       - name: Ensure workflow actions use immutable refs
-        uses: joshjohanning/ensure-immutable-actions@95f404c7ba212d486ec843666f0ffbd080959f63  # v2.7.1
+        uses: joshjohanning/ensure-immutable-actions@aaa3ba61b950ead2be895ea36a561a5eb11dd82b  # v2.7.2
         with:
           exclude-workflows: 'release.yml'
           include-first-party: 'true'
