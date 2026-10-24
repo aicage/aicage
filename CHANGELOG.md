@@ -7,10 +7,34 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.5.3] - 2026-10-24
+
+### Added
+
+- Added global and directory-tree configuration scopes, allowing agent settings to be inherited and reused across
+  projects.
+- Added `--base`, `--extension`, and `--git` options for configuring non-interactive and integration-driven runs.
+
 ### Changed
 
 - Removed the line-based `--menu simple` setup flow. Use the default `--menu ui` configuration UI, or `--menu none`
   with CLI options for non-interactive runs.
+- `--config remove` now requires an agent name, limiting removal to one agent configuration at a time.
+- Python 3.11 is now the minimum supported version; Python 3.10 is no longer supported.
+
+### Fixed
+
+- Ignore stale extended-image references when selecting an image.
+- Preserve pending image-update confirmations when extensions require an image build.
+- Support Docker named-pipe (`npipe://`) endpoints when passing Docker access into a container on Windows.
+
+### Quality
+
+- Expanded automated validation across Windows, proxy, image, and live ACP/OpenRouter scenarios.
+
+### Documentation
+
+- Documented configuration scopes and refreshed configuration UI screenshots.
 
 ## [1.5.2] - 2026-10-10
 
