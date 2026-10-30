@@ -45,7 +45,8 @@ jobs:
   integration-test-openrouter:
     needs: verify-tagged-commit
     uses: ./.github/workflows/integration-test-openrouter.yml
-    secrets: inherit
+    secrets:
+      OPENROUTER_API_KEY: ${{ secrets.OPENROUTER_API_KEY }}
 
   publish:
     name: Publish to PyPI
