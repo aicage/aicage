@@ -3,35 +3,35 @@
   "agent_servers": {
     "Auggie (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["auggie", "--acp"]
+      "args": ["--acp-wsl", "auggie", "--acp"]
     },
     "Copilot (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["copilot", "--acp", "--stdio"]
+      "args": ["--acp-wsl", "copilot", "--acp", "--stdio"]
     },
     "Factory Droid (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["droid", "exec", "--output-format", "acp"]
+      "args": ["--acp-wsl", "droid", "exec", "--output-format", "acp"]
     },
     "Goose (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["goose", "acp"]
+      "args": ["--acp-wsl", "goose", "acp"]
     },
     "Kiro (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["kiro-cli", "acp"]
+      "args": ["--acp-wsl", "kiro-cli", "acp"]
     },
     "OpenCode (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["opencode", "acp"]
+      "args": ["--acp-wsl", "opencode", "acp"]
     },
     "Qwen (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["qwen", "--acp"]
+      "args": ["--acp-wsl", "qwen", "--acp"]
     },
     "Vibe (Aicage)": {
       "command": "/path/to/aicage",
-      "args": ["-e", "AICAGE_ENTRYPOINT_CMD=vibe-acp", "--", "vibe"]
+      "args": ["--acp-wsl", "-e", "AICAGE_ENTRYPOINT_CMD=vibe-acp", "--", "vibe"]
     },
     "Amp (Aicage)": {
       "command": "/path/to/amp-acp.cmd",
