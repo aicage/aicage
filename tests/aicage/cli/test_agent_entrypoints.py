@@ -25,4 +25,4 @@ class AgentEntrypointsTests(TestCase):
             exit_code = entrypoint()
 
         self.assertEqual(7, exit_code)
-        main_mock.assert_called_once_with([agent, "--acp"])
+        main_mock.assert_called_once_with(["--acp-wsl", agent, "--acp"])
