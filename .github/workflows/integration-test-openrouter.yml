@@ -13,6 +13,9 @@ name: Integration Tests (OpenRouter)
         required: false
         default: true
         type: boolean
+    secrets:
+      OPENROUTER_API_KEY:
+        required: true
   workflow_dispatch:
     inputs:
       include_macos:
