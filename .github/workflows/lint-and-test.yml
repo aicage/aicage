@@ -50,6 +50,7 @@ jobs:
         if: matrix.runner == 'ubuntu-latest'
         uses: hadolint/hadolint-action@06be81baf89a55ffd0e24b8f04a4185738dd3387  # v3.5.0
         with:
+          config: .github/linters/.hadolint.yaml
           recursive: "true"
 
       - name: Set up Python

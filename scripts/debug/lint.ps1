@@ -3,8 +3,8 @@ $ErrorActionPreference = "Stop"
 $repoRoot = git rev-parse --show-toplevel
 Set-Location $repoRoot
 
-yamllint .
-pymarkdown --config .pymarkdown.json scan `
+yamllint --config-file .github/linters/.yamllint .
+pymarkdown --config .github/linters/.pymarkdown.json scan `
     --recurse `
     --exclude "**/.venv*/**" `
     --exclude "./aicage-custom-samples/" `
