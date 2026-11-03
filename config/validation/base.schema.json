@@ -2,12 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "AICAGE base definition",
   "type": "object",
-  "required": [
-    "from_image",
-    "base_image_distro",
-    "base_image_description",
-    "architectures"
-  ],
+  "required": ["from_image", "base_image_distro", "base_image_description", "architectures"],
   "properties": {
     "from_image": {
       "type": "string",
