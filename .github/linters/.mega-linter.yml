@@ -1,17 +1,26 @@
 FORMATTERS_DISABLE_ERRORS: false
-
+LINTER_RULES_PATH: .github/linters
 DISABLE_LINTERS:
   - PYTHON_MYPY
   - PYTHON_PYLINT
   - REPOSITORY_DEVSKIM
 
 PRE_COMMANDS:
+  - command: ln -s .github/linters/.lycheeignore .lycheeignore
+    cwd: workspace
+    run_before_linters: true
+    continue_if_failed: false
   - command: >-
       python -m venv .venv &&
       .venv/bin/python -m pip install --upgrade pip &&
       .venv/bin/python -m pip install -r requirements-dev.txt
     cwd: workspace
     run_before_linters: true
+    continue_if_failed: false
+
+POST_COMMANDS:
+  - command: rm .lycheeignore
+    cwd: workspace
     continue_if_failed: false
 
 # flake8
@@ -27,7 +36,7 @@ REPOSITORY_KINGFISHER_ARGUMENTS: "--exclude .venv"
 BASH_SHFMT_ARGUMENTS: "--indent 2 -case-indent"
 
 # trivy
-REPOSITORY_TRIVY_ARGUMENTS: "--ignorefile ./.trivyignore.yaml"
+REPOSITORY_TRIVY_ARGUMENTS: "--ignorefile .github/linters/.trivyignore.yaml"
 
 # trufflehog
 REPOSITORY_TRUFFLEHOG_ARGUMENTS: "--exclude-detectors=Lob"

@@ -5,11 +5,11 @@ repo_root=$(git rev-parse --show-toplevel)
 cd "$repo_root"
 
 # YAML
-yamllint .
+yamllint --config-file .github/linters/.yamllint .
 
 # Markdown
 pymarkdown \
-  --config .pymarkdown.json scan \
+  --config .github/linters/.pymarkdown.json scan \
   --recurse \
   --exclude '**/.venv*/**' \
   .
@@ -21,7 +21,7 @@ ruff check .
 pyright .
 
 # mypy (Python)
-mypy .
+mypy --config-file .github/linters/.mypy.ini .
 
 # Ignore generated version metadata from setuptools-scm.
 if rg_output=$(rg -n --glob '*.py' --glob '!src/*/_version.py' '__all__' src); then
@@ -69,12 +69,12 @@ docker run --rm \
   '
 
 # flake8
-flake8 .
+flake8 --config .github/linters/.flake8 .
 
 # pylint (Python)
 # find all .venv* folders and pass them as comma separated list to pylint --ignore
 venv_directories=$(printf '%s\n' .venv*/ | sed -E 's#/$##' | paste -sd, -)
-PYTHONPATH=src pylint --ignore="$venv_directories" .
+PYTHONPATH=src pylint --rcfile=.github/linters/.pylintrc --ignore="$venv_directories" .
 
 # bandit
-bandit --quiet -c .bandit.yml -r src scripts 2>/dev/null
+bandit --quiet -c .github/linters/.bandit.yml -r src scripts 2>/dev/null
