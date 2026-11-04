@@ -6,21 +6,12 @@ DISABLE_LINTERS:
   - REPOSITORY_DEVSKIM
 
 PRE_COMMANDS:
-  - command: ln -s .github/linters/.lycheeignore .lycheeignore
-    cwd: workspace
-    run_before_linters: true
-    continue_if_failed: false
   - command: >-
       python -m venv .venv &&
       .venv/bin/python -m pip install --upgrade pip &&
       .venv/bin/python -m pip install -r requirements-dev.txt
     cwd: workspace
     run_before_linters: true
-    continue_if_failed: false
-
-POST_COMMANDS:
-  - command: rm .lycheeignore
-    cwd: workspace
     continue_if_failed: false
 
 # flake8
