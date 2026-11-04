@@ -26,6 +26,7 @@ class ParsedArgsTests(TestCase):
         self.assertFalse(parsed.docker_socket)
         self.assertEqual(["/test-tmp/one", "/test-tmp/two:ro"], parsed.shares)
         self.assertEqual("ui", parsed.menu)
+        self.assertFalse(parsed.acp_wsl)
 
     def test_config_command_shapes(self) -> None:
         self.assertIsNone(ConfigInfoArgs(scope=None).scope)

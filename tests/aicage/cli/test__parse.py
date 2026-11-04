@@ -284,6 +284,15 @@ class ParseCliTests(TestCase):
             str(ctx.exception),
         )
 
+    def test_parse_cli_config_update_rejects_acp_wsl(self) -> None:
+        with self.assertRaises(CliError) as ctx:
+            parse_cli(["--acp-wsl", "--config", "global", "--", "codex"])
+
+        self.assertEqual(
+            "--acp-wsl cannot be used when updating configuration.",
+            str(ctx.exception),
+        )
+
     def test_parse_cli_accepts_git_for_agent(self) -> None:
         parsed = _parse_run(["--git", "--", "codex"])
 
@@ -348,6 +357,11 @@ class ParseCliTests(TestCase):
         parsed = _parse_run(["--extension", "one", "--extension", "two", "--", "codex"])
 
         self.assertEqual(["one", "two"], parsed.extensions)
+
+    def test_parse_cli_with_acp_wsl(self) -> None:
+        parsed = _parse_run(["--acp-wsl", "--", "codex"])
+
+        self.assertTrue(parsed.acp_wsl)
 
     def test_parse_cli_with_base(self) -> None:
         parsed = _parse_run(["--base", "ubuntu", "--", "codex"])

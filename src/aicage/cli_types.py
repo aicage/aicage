@@ -17,6 +17,7 @@ class ParsedArgs:
     extensions: list[str] = field(default_factory=list)
     git: bool | None = None
     base: str | None = None
+    acp_wsl: bool = False
 
 
 @dataclass

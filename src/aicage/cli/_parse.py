@@ -22,6 +22,7 @@ _MAX_CONFIG_TOKENS = 3
 _DRY_RUN_OPTION = "--dry-run"
 _MENU_OPTION = "--menu"
 _DOCKER_OPTION = "--docker"
+_ACP_WSL_OPTION = "--acp-wsl"
 _BASE_OPTION = "--base"
 _SHARE_OPTION = "--share"
 _EXTENSION_OPTION = "--extension"
@@ -66,6 +67,11 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
         _DOCKER_OPTION,
         action="store_true",
         help="Mount the host Docker socket into the container.",
+    )
+    parser.add_argument(
+        _ACP_WSL_OPTION,
+        action="store_true",
+        help="Translate ACP paths between Windows and WSL.",
     )
     parser.add_argument(
         _BASE_OPTION,
@@ -128,9 +134,9 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
         usage: str = (
             "Usage:\n"
             "  aicage <agent>\n"
-            "  aicage [--menu <mode>] [--dry-run] [--docker] [--base <id>] [--git [on|off]] "
+            "  aicage [--menu <mode>] [--dry-run] [--docker] [--acp-wsl] [--base <id>] [--git [on|off]] "
             "[--share <path>]... [--extension <id>]... <agent> [<agent-args>]\n"
-            "  aicage [--menu <mode>] [--dry-run] [--docker] [--base <id>] [--git [on|off]] "
+            "  aicage [--menu <mode>] [--dry-run] [--docker] [--acp-wsl] [--base <id>] [--git [on|off]] "
             "[--share <path>]... [--extension <id>]... <docker-args> -- <agent>"
             " [<agent-args>]\n"
             "  aicage --config\n"
@@ -146,6 +152,7 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
             "  --dry-run        Print the generated docker run command and exit.\n"
             "  --menu <mode>    Choose menu mode: ui or none.\n"
             "  --docker         Mount /run/docker.sock into the container.\n"
+            "  --acp-wsl        Translate ACP paths between Windows and WSL.\n"
             "  --base <id>      Select the agent base image.\n"
             "  --git [on|off]   Enable or disable Git support mounts (default: on).\n"
             "  --share <path>   Mount a host path into the container. Repeatable.\n"
@@ -187,6 +194,7 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
         extensions=opts.extension,
         git=opts.git,
         base=opts.base,
+        acp_wsl=opts.acp_wsl,
     )
 
 
@@ -270,6 +278,8 @@ def _parse_config_command(
     if _is_config_update(config_action, config_tokens, post_argv):
         if opts.dry_run:
             raise CliError("--dry-run cannot be used when updating configuration.")
+        if opts.acp_wsl:
+            raise CliError("--acp-wsl cannot be used when updating configuration.")
         if post_argv is None or len(post_argv) != 1:
             raise CliError(
                 "Configuration updates require exactly one agent after '--'."
@@ -294,6 +304,7 @@ def _parse_config_command(
         remaining
         or post_argv
         or opts.docker
+        or opts.acp_wsl
         or opts.base is not None
         or opts.dry_run
         or opts.share

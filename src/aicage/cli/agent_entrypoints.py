@@ -16,4 +16,4 @@ def codex() -> int:
 
 
 def _run_agent(agent: str) -> int:
-    return main([agent, *sys.argv[1:]])
+    return main(["--acp-wsl", agent, *sys.argv[1:]])
