@@ -7,6 +7,25 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.0] - 2026-11-04
+
+### Added
+
+- Added `--acp-wsl` to translate ACP paths between Windows IDE clients and WSL.
+
+### Changed
+
+- Windows ACP example configurations for Visual Studio Code and JetBrains IDEs now enable WSL path translation.
+- ACP bridge launchers for Amp CLI, Claude Code, and Codex CLI now enable WSL path translation automatically.
+
+### Quality
+
+- Expanded automated Windows compatibility coverage for CLI, Docker, and integration scenarios.
+
+### Documentation
+
+- Added platform-specific IDE configuration examples to the README.
+
 ## [1.6.1] - 2026-10-30
 
 ### Fixed
