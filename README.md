@@ -31,23 +31,44 @@ Use one of these builtin CLI agents or
 <!-- markdownlint-disable line-length -->
 <table>
   <tr>
-    <td><img src="assets/agent-logos/amp.svg" alt="" height="20" style="vertical-align: middle;"> <a href="https://ampcode.com/docs/cli">Amp CLI</a>&nbsp;·&nbsp;<code>amp</code></td>
-    <td><a href="https://docs.augmentcode.com/cli">Auggie CLI</a>&nbsp;·&nbsp;<code>auggie</code></td>
-    <td><img src="assets/agent-logos/claude.svg" alt="" height="20" style="vertical-align: middle;"> <a href="https://claude.com/product/claude-code">Claude Code</a>&nbsp;·&nbsp;<code>claude</code></td>
+    <td>
+      <a href="https://ampcode.com/docs/cli" aria-label="Amp CLI"><img src="assets/agent-logos/amp.svg" alt="" height="20" style="vertical-align: middle;"></a>
+      <a href="https://ampcode.com/docs/cli">Amp CLI</a> · <code>amp</code>
+    </td>
+    <td><a href="https://docs.augmentcode.com/cli">Auggie CLI</a> · <code>auggie</code></td>
+    <td>
+      <a href="https://claude.com/product/claude-code" aria-label="Claude Code"><img src="assets/agent-logos/claude.svg" alt="" height="20" style="vertical-align: middle;"></a>
+      <a href="https://claude.com/product/claude-code">Claude Code</a> · <code>claude</code>
+    </td>
   </tr>
   <tr>
-    <td><img src="assets/agent-logos/codex.svg" alt="" height="20" style="vertical-align: middle;"> <a href="https://developers.openai.com/codex/cli">Codex CLI</a>&nbsp;·&nbsp;<code>codex</code></td>
-    <td><a href="https://github.com/features/copilot/cli">GitHub Copilot CLI</a>&nbsp;·&nbsp;<code>copilot</code></td>
-    <td><a href="https://factory.ai/product/cli">Factory CLI</a>&nbsp;·&nbsp;<code>droid</code></td>
+    <td>
+      <a href="https://developers.openai.com/codex/cli" aria-label="Codex CLI"><img src="assets/agent-logos/codex.svg" alt="" height="20" style="vertical-align: middle;"></a>
+      <a href="https://developers.openai.com/codex/cli">Codex CLI</a> · <code>codex</code>
+    </td>
+    <td><a href="https://github.com/features/copilot/cli">GitHub Copilot CLI</a> · <code>copilot</code></td>
+    <td><a href="https://factory.ai/product/cli">Factory CLI</a> · <code>droid</code></td>
   </tr>
   <tr>
-    <td><img src="assets/agent-logos/goose.svg" alt="" height="20" style="vertical-align: middle;"> <a href="https://goose-docs.ai">Goose CLI</a>&nbsp;·&nbsp;<code>goose</code></td>
-    <td><a href="https://kiro.dev/cli/">Kiro CLI</a>&nbsp;·&nbsp;<code>kiro-cli</code></td>
-    <td><img src="assets/agent-logos/opencode.svg" alt="" height="20" style="vertical-align: middle;"> <a href="https://opencode.ai">OpenCode</a>&nbsp;·&nbsp;<code>opencode</code></td>
+    <td>
+      <a href="https://goose-docs.ai" aria-label="Goose CLI"><img src="assets/agent-logos/goose.svg" alt="" height="20" style="vertical-align: middle;"></a>
+      <a href="https://goose-docs.ai">Goose CLI</a> · <code>goose</code>
+    </td>
+    <td><a href="https://kiro.dev/cli/">Kiro CLI</a> · <code>kiro-cli</code></td>
+    <td>
+      <a href="https://opencode.ai" aria-label="OpenCode"><img src="assets/agent-logos/opencode.svg" alt="" height="20" style="vertical-align: middle;"></a>
+      <a href="https://opencode.ai">OpenCode</a> · <code>opencode</code>
+    </td>
   </tr>
   <tr>
-    <td><img src="assets/agent-logos/qwen.svg" alt="" height="20" style="vertical-align: middle;"> <a href="https://qwenlm.github.io/qwen-code-docs">Qwen Code</a>&nbsp;·&nbsp;<code>qwen</code></td>
-    <td><img src="assets/agent-logos/mistral.svg" alt="" height="20" style="vertical-align: middle;"> <a href="https://docs.mistral.ai/vibe/code/">Mistral Vibe CLI</a>&nbsp;·&nbsp;<code>vibe</code></td>
+    <td width="190">
+      <a href="https://qwenlm.github.io/qwen-code-docs" aria-label="Qwen Code"><img src="assets/agent-logos/qwen.svg" alt="" height="20" style="vertical-align: middle;"></a>
+      <a href="https://qwenlm.github.io/qwen-code-docs">Qwen Code</a> · <code>qwen</code>
+    </td>
+    <td>
+      <a href="https://docs.mistral.ai/vibe/code/" aria-label="Mistral Vibe CLI"><img src="assets/agent-logos/mistral.svg" alt="" height="20" style="vertical-align: middle;"></a>
+      <a href="https://docs.mistral.ai/vibe/code/">Mistral Vibe CLI</a> · <code>vibe</code>
+    </td>
     <td></td>
   </tr>
 </table>
