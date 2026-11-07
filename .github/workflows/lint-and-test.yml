@@ -39,7 +39,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@6f9f17788090df1f26f669e9d70d6ae9567deba6  # v4.1.2
+        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532  # v4.1.3
 
       - name: Syncing metadata and agents with sub-project 'aicage-image'
         shell: bash
@@ -76,7 +76,7 @@ jobs:
 
       - name: Set up Skrog Docker WSL
         if: matrix.runner == 'windows-latest'
-        uses: gh-workflow/setup-docker-wsl@696cc245db4387e47132acbe6df1437531e104bc  # v1.0.4
+        uses: gh-workflow/setup-docker-wsl@8462801a5235dbb7ae264822c054a971f0c63b96  # v1.0.5
         with:
           verify-docker-in-containers: "true"
 
