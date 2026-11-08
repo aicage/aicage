@@ -37,10 +37,9 @@ from ._layout import shell_width
 from ._selection_list import _OverviewSelectionList
 from ._shares import (
     current_custom_shares,
-    git_support_key,
-    is_git_support_button,
+    host_access_button_key,
     merge_built_in_shares,
-    next_git_support_value,
+    next_mount_value,
     refresh_shares,
     share_widgets,
 )
@@ -75,8 +74,14 @@ class Overview(Container):
             self.scope = scope
             super().__init__()
 
-    class GitSupportChanged(Message):
-        def __init__(self, key: str, value: bool | None) -> None:
+    class HostAccessChanged(Message):
+        def __init__(
+            self,
+            source: BuiltInShareSource,
+            key: str,
+            value: bool | None,
+        ) -> None:
+            self.source = source
             self.key = key
             self.value = value
             super().__init__()
@@ -139,8 +144,8 @@ class Overview(Container):
         )
 
     def on_button_pressed(self, event: Button.Pressed) -> None:
-        if is_git_support_button(event.button.id):
-            self._change_git_support(event.button)
+        if host_access_button_key(event.button.id) is not None:
+            self._change_host_access(event.button)
             return
         if event.button.id == "ok":
             self.post_message(self.AcceptRequested())
@@ -209,7 +214,11 @@ class Overview(Container):
             built_in_shares = [
                 item
                 for item in built_in_shares
-                if item.source is not BuiltInShareSource.GIT_SUPPORT
+                if item.source
+                not in {
+                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
+                }
             ]
         self._state.built_in_shares = merge_built_in_shares(
             built_in_shares,
@@ -317,16 +326,24 @@ class Overview(Container):
         for related_value in related_values:
             selection_list.deselect(related_value)
 
-    def _change_git_support(self, button: Button) -> None:
+    def _change_host_access(self, button: Button) -> None:
         if button.id is None:
             return
-        key = git_support_key(button.id)
-        value = next_git_support_value(self._state.git_support_values.get(key))
-        self._state.git_support_values[key] = value
+        result = host_access_button_key(button.id)
+        if result is None:
+            return
+        source, key = result
+        values = (
+            self._state.git_values
+            if source is BuiltInShareSource.GIT_SUPPORT
+            else self._state.credential_values
+        )
+        value = next_mount_value(values.get(key))
+        values[key] = value
         button.label = (
             "Auto" if value is None else "On\u00a0\u00a0" if value else "Off\u00a0"
         )
-        self.post_message(self.GitSupportChanged(key, value))
+        self.post_message(self.HostAccessChanged(source, key, value))
 
     def _docker_widgets(self) -> list[Static | SelectionList]:
         selections = [

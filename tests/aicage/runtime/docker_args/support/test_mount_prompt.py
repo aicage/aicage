@@ -19,11 +19,12 @@ class MountPromptTests(TestCase):
     def test_select_all_mounts_returns_all_group_keys(self) -> None:
         request = mount_prompt_module._MountSelectionRequest(
             git_items=[mount_prompt_module._MountPromptItem("git", "Git")],
+            credential_items=[mount_prompt_module._MountPromptItem("ssh", "SSH")],
             extension_items=[mount_prompt_module._MountPromptItem("gh", "GitHub CLI")],
         )
 
         self.assertEqual(
-            ["git", "gh"],
+            ["git", "ssh", "gh"],
             mount_prompt_module.select_all_mounts(request),
         )
 
@@ -33,11 +34,11 @@ class MountPromptTests(TestCase):
         git_items = [
             (MOUNT_GITCONFIG_KEY, "Git config (name/email): /test-tmp/gitconfig"),
             (MOUNT_GITROOT_KEY, "Git root (repository access): /test-tmp/root"),
-            (MOUNT_GNUPG_KEY, "GnuPG keys (for Git signing): /test-tmp/gnupg"),
         ]
 
         with (
             mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=git_items),
+            mock.patch(f"{_MODULE}._credential_mount_prompt_items", return_value=[]),
         ):
             prefs = mount_prompt_module.resolve_mount_prompt_prefs(
                 project_path,
@@ -51,16 +52,17 @@ class MountPromptTests(TestCase):
             )
 
         assert prefs is not None
-        self.assertEqual(
-            {MOUNT_GITCONFIG_KEY, MOUNT_GITROOT_KEY, MOUNT_GNUPG_KEY}, prefs.git_mounts
-        )
+        self.assertEqual({MOUNT_GITCONFIG_KEY, MOUNT_GITROOT_KEY}, prefs.git_mounts)
         self.assertEqual({}, prefs.extension_mounts)
 
     def test_resolve_mount_prompt_prefs_skips_when_no_items(self) -> None:
         agent_cfg = AgentConfig(mounts=_AgentMounts())
 
         select_mounts = mock.Mock()
-        with mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]):
+        with (
+            mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]),
+            mock.patch(f"{_MODULE}._credential_mount_prompt_items", return_value=[]),
+        ):
             prefs = mount_prompt_module.resolve_mount_prompt_prefs(
                 Path("/repo"), agent_cfg, {}, select_mounts
             )
@@ -91,6 +93,9 @@ class MountPromptTests(TestCase):
             with (
                 mock.patch(
                     f"{_MODULE}._git_support_prompt_items", return_value=git_items
+                ),
+                mock.patch(
+                    f"{_MODULE}._credential_mount_prompt_items", return_value=[]
                 ),
             ):
                 select_mounts = mock.Mock(return_value=[MOUNT_GITCONFIG_KEY, "gh"])
@@ -123,7 +128,10 @@ class MountPromptTests(TestCase):
             dockerfile_path=None,
         )
 
-        with mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]):
+        with (
+            mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]),
+            mock.patch(f"{_MODULE}._credential_mount_prompt_items", return_value=[]),
+        ):
             prefs = mount_prompt_module.resolve_mount_prompt_prefs(
                 Path("/repo"), agent_cfg, {"gh": extension}, lambda _request: []
             )
@@ -173,7 +181,10 @@ class MountPromptTests(TestCase):
         )
 
         select_mounts = mock.Mock(return_value=["sample"])
-        with mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]):
+        with (
+            mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]),
+            mock.patch(f"{_MODULE}._credential_mount_prompt_items", return_value=[]),
+        ):
             prefs = mount_prompt_module.resolve_mount_prompt_prefs(
                 Path("/repo"), agent_cfg, {"sample": extension}, select_mounts
             )
@@ -205,7 +216,10 @@ class MountPromptTests(TestCase):
         )
 
         select_mounts = mock.Mock()
-        with mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]):
+        with (
+            mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]),
+            mock.patch(f"{_MODULE}._credential_mount_prompt_items", return_value=[]),
+        ):
             prefs = mount_prompt_module.resolve_mount_prompt_prefs(
                 Path("/repo"), agent_cfg, {"empty": extension}, select_mounts
             )

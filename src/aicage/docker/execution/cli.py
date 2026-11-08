@@ -10,12 +10,14 @@ def run_docker_command(
     command: list[str],
     *,
     check: bool,
+    stdin: TextIO | int | None = None,
     stdout: TextIO | int | None = None,
     stderr: TextIO | int | None = None,
 ) -> subprocess.CompletedProcess[str] | subprocess.CompletedProcess[bytes]:
     try:
         with subprocess.Popen(  # nosec B603 -- command is a caller-built Docker CLI argv list without shell usage.
             command,
+            stdin=stdin,
             stdout=stdout,
             stderr=stderr,
             env=docker_cli_environment(),

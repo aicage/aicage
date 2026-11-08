@@ -316,9 +316,47 @@ class ParseCliTests(TestCase):
 
         self.assertIsNone(parsed.git)
 
+    def test_parse_cli_accepts_bare_ssh_for_agent(self) -> None:
+        parsed = _parse_run(["--ssh", "codex"])
+
+        self.assertEqual("codex", parsed.agent)
+        self.assertTrue(parsed.ssh)
+
+    def test_parse_cli_accepts_ssh_off_for_agent(self) -> None:
+        parsed = _parse_run(["--ssh", "off", "codex"])
+
+        self.assertEqual("codex", parsed.agent)
+        self.assertFalse(parsed.ssh)
+
+    def test_parse_cli_accepts_bare_gpg_for_agent(self) -> None:
+        parsed = _parse_run(["--gpg", "codex"])
+
+        self.assertEqual("codex", parsed.agent)
+        self.assertTrue(parsed.gpg)
+
+    def test_parse_cli_accepts_gpg_off_for_agent(self) -> None:
+        parsed = _parse_run(["--gpg", "off", "codex"])
+
+        self.assertEqual("codex", parsed.agent)
+        self.assertFalse(parsed.gpg)
+
+    def test_parse_cli_leaves_credentials_unset_without_options(self) -> None:
+        parsed = _parse_run(["codex"])
+
+        self.assertIsNone(parsed.ssh)
+        self.assertIsNone(parsed.gpg)
+
     def test_parse_cli_config_info_rejects_git_off(self) -> None:
         with self.assertRaises(CliError) as ctx:
             parse_cli(["--git", "off", "--config", "info"])
+
+        self.assertEqual(
+            "No additional arguments are allowed with --config.", str(ctx.exception)
+        )
+
+    def test_parse_cli_config_info_rejects_credential_options(self) -> None:
+        with self.assertRaises(CliError) as ctx:
+            parse_cli(["--ssh", "off", "--config", "info"])
 
         self.assertEqual(
             "No additional arguments are allowed with --config.", str(ctx.exception)
@@ -408,11 +446,21 @@ class ParseCliTests(TestCase):
         )
         self.assertIn("--menu <mode>", output)
         self.assertIn("[--git [on|off]]", output)
+        self.assertIn("[--ssh [on|off]]", output)
+        self.assertIn("[--gpg [on|off]]", output)
         self.assertIn("[--base <id>]", output)
         self.assertIn("[--extension <id>]...", output)
-        self.assertIn("--base <id>      Select the agent base image.", output)
+        self.assertIn("--base <id>          Select the agent base image.", output)
         self.assertIn(
-            "--git [on|off]   Enable or disable Git support mounts (default: on).",
+            "--git [on|off]       Enable or disable Git configuration and repository mounts (default: on).",
+            output,
+        )
+        self.assertIn(
+            "--ssh [on|off]       Enable or disable SSH credential forwarding; --ssh means on.",
+            output,
+        )
+        self.assertIn(
+            "--gpg [on|off]       Enable or disable GnuPG credential forwarding; --gpg means on.",
             output,
         )
         self.assertNotIn("simple", output)

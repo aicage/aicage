@@ -18,14 +18,18 @@ _READ_ONLY_PREFIX = "Read-only"
 _GIT_SUPPORT_LABELS: dict[str, str] = {
     MOUNT_GITCONFIG_KEY: "Git config",
     MOUNT_GITROOT_KEY: "Git root",
-    MOUNT_SSH_KEY: "SSH",
-    MOUNT_GNUPG_KEY: "GnuPG",
+}
+_CREDENTIAL_LABELS: dict[str, str] = {
+    MOUNT_SSH_KEY: "SSH keys",
+    MOUNT_GNUPG_KEY: "GnuPG keys",
 }
 _GIT_SUPPORT_CONFIG_LABELS: dict[str, str] = {
     MOUNT_GITCONFIG_KEY: "Git configuration (identity, aliases, and settings)",
     MOUNT_GITROOT_KEY: "Git repository root (when launched from a subdirectory)",
-    MOUNT_GNUPG_KEY: "GnuPG home (for Git commit signing)",
-    MOUNT_SSH_KEY: "SSH directory (for Git remote access and signing)",
+}
+_CREDENTIAL_CONFIG_LABELS: dict[str, str] = {
+    MOUNT_GNUPG_KEY: "GnuPG keys : GnuPG socket",
+    MOUNT_SSH_KEY: "SSH keys : SSH socket",
 }
 
 
@@ -44,6 +48,14 @@ def git_support_label(key: str) -> str:
 
 def git_support_config_label(key: str) -> str:
     return _GIT_SUPPORT_CONFIG_LABELS.get(key, key)
+
+
+def credential_label(key: str) -> str:
+    return _CREDENTIAL_LABELS.get(key, key)
+
+
+def credential_config_label(key: str) -> str:
+    return _CREDENTIAL_CONFIG_LABELS.get(key, key)
 
 
 def extension_label(extension_id: str) -> str:

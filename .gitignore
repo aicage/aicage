@@ -9,3 +9,6 @@ dist/
 
 # megalinter adds this when using checkov
 /.megalinter_github_conf/
+
+# for integration tests
+/.aicage-test-tmp/

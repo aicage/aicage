@@ -11,6 +11,7 @@ IMAGE_BASE_SOURCE_URL: str = "https://github.com/aicage/aicage-image-base"
 IMAGE_UTIL_SOURCE_URL: str = "https://github.com/aicage/aicage-image-util"
 
 VERSION_CHECK_IMAGE: str = "ghcr.io/aicage/aicage-image-util:agent-version"
+CREDENTIAL_AGENT_IMAGE: str = "ghcr.io/aicage/aicage-image-util:credential-agent"
 
 # ### END: FORK IMAGES ###
 

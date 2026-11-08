@@ -9,17 +9,12 @@ from aicage.config.project_config import (
     AgentConfig,
 )
 from aicage.config.run_config_draft import RunConfigDraft
+from aicage.gpg import has_gpg_keys, resolve_gpg_home
 from aicage.runtime._errors import RuntimeExecutionError
+from aicage.runtime._ssh_agent import _has_ssh_keys
 from aicage.runtime.docker_args.support.git_support import (
     resolve_git_config_path,
     resolve_git_root,
-    resolve_gpg_home,
-    resolve_ssh_dir,
-    uses_ssh_remotes,
-)
-from aicage.runtime.docker_args.support.signing import (
-    is_commit_signing_enabled,
-    resolve_signing_format,
 )
 from aicage.runtime.mounts.shares import (
     ShareSpec,
@@ -28,7 +23,7 @@ from aicage.runtime.mounts.shares import (
 )
 
 from .._models import BuiltInShareSource, BuiltInShareValue
-from .._mount_display import extension_label, git_support_label
+from .._mount_display import credential_label, extension_label, git_support_label
 
 
 def normalize_shares_from_editor(
@@ -86,38 +81,28 @@ def built_in_share_values(
             )
         )
 
-    signing_enabled = is_commit_signing_enabled(project_path)
-    signing_format = resolve_signing_format(project_path) if signing_enabled else None
-    ssh_needed = (signing_enabled and signing_format == "ssh") or uses_ssh_remotes(
-        project_path
-    )
-    if ssh_needed:
-        ssh_dir = resolve_ssh_dir()
-        if ssh_dir.exists():
-            built_in_shares.append(
-                BuiltInShareValue(
-                    source=BuiltInShareSource.GIT_SUPPORT,
-                    key=MOUNT_SSH_KEY,
-                    label=git_support_label(MOUNT_SSH_KEY),
-                    path=str(ssh_dir),
-                    persisted=mounts_cfg.ssh,
-                    enabled=_built_in_share_enabled(mounts_cfg.ssh),
-                    inherited=_is_inherited_mount(
-                        local_mounts.ssh, inherited_mounts.ssh
-                    ),
-                )
+    if _has_ssh_keys():
+        built_in_shares.append(
+            BuiltInShareValue(
+                source=BuiltInShareSource.CREDENTIALS,
+                key=MOUNT_SSH_KEY,
+                label=credential_label(MOUNT_SSH_KEY),
+                path="SSH socket",
+                persisted=mounts_cfg.ssh,
+                enabled=_built_in_share_enabled(mounts_cfg.ssh),
+                inherited=_is_inherited_mount(local_mounts.ssh, inherited_mounts.ssh),
             )
+        )
 
-    needs_gnupg = signing_enabled and signing_format != "ssh"
-    if needs_gnupg:
+    if has_gpg_keys():
         gpg_home = resolve_gpg_home()
-        if gpg_home and gpg_home.exists():
+        if gpg_home:
             built_in_shares.append(
                 BuiltInShareValue(
-                    source=BuiltInShareSource.GIT_SUPPORT,
+                    source=BuiltInShareSource.CREDENTIALS,
                     key=MOUNT_GNUPG_KEY,
-                    label=git_support_label(MOUNT_GNUPG_KEY),
-                    path=str(gpg_home),
+                    label=credential_label(MOUNT_GNUPG_KEY),
+                    path="GnuPG socket",
                     persisted=mounts_cfg.gnupg,
                     enabled=_built_in_share_enabled(mounts_cfg.gnupg),
                     inherited=_is_inherited_mount(

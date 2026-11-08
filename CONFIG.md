@@ -65,17 +65,17 @@ agents:
 
 Used under `agents.<agent>` in the project config.
 
-| Key                | Type   | Presence | Description                                             |
-|--------------------|--------|----------|---------------------------------------------------------|
-| `base`             | string | Always   | Image base to use for this agent in this project.       |
-| `docker_args`      | string | Optional | Persisted `docker run` args for this agent.             |
-| `image_ref`        | string | Optional | Selected image ref (prebuilt or extended).              |
-| `extensions`       | list   | Optional | Ordered list of selected extensions for this agent.     |
-| `shares`           | list   | Optional | Persisted share mounts (`HOST` or `HOST:ro`).           |
-| `extension_mounts` | map    | Optional | Persisted on/off choices for extension-defined mounts.  |
-| `mounts`           | map    | Optional | Host resource mount preferences.                        |
-| `mounts.gitconfig` | bool   | Optional | Mount the host Git config file.                         |
-| `mounts.gitroot`   | bool   | Optional | Mount the detected Git repository root.                 |
-| `mounts.gnupg`     | bool   | Optional | Mount the host GnuPG home for Git signing.              |
-| `mounts.ssh`       | bool   | Optional | Mount the host SSH keys for Git SSH access and signing. |
-| `mounts.docker`    | bool   | Optional | Mount `/run/docker.sock` into the container.            |
+| Key                | Type   | Presence | Description                                               |
+|--------------------|--------|----------|-----------------------------------------------------------|
+| `base`             | string | Always   | Image base to use for this agent in this project.         |
+| `docker_args`      | string | Optional | Persisted `docker run` args for this agent.               |
+| `image_ref`        | string | Optional | Selected image ref (prebuilt or extended).                |
+| `extensions`       | list   | Optional | Ordered list of selected extensions for this agent.       |
+| `shares`           | list   | Optional | Persisted share mounts (`HOST` or `HOST:ro`).             |
+| `extension_mounts` | map    | Optional | Persisted on/off choices for extension-defined mounts.    |
+| `mounts`           | map    | Optional | Host resource mount preferences.                          |
+| `mounts.gitconfig` | bool   | Optional | Mount the host Git config file.                           |
+| `mounts.gitroot`   | bool   | Optional | Mount the detected Git repository root.                   |
+| `mounts.gnupg`     | bool   | Optional | Make host GnuPG credentials available through its socket. |
+| `mounts.ssh`       | bool   | Optional | Make host SSH credentials available through its socket.   |
+| `mounts.docker`    | bool   | Optional | Mount `/run/docker.sock` into the container.              |

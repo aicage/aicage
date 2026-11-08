@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from dataclasses import replace
 from typing import TypeVar
 
@@ -18,7 +19,10 @@ from aicage.config.project_config import (
 )
 from aicage.config.run_config_draft import RunConfigDraft
 from aicage.registry.image_selection.interaction import ExtensionChoiceOption
-from aicage.runtime.docker_args.mount_preferences import disable_git_mounts
+from aicage.runtime.docker_args.mount_preferences import (
+    apply_cli_credential_mount_preferences,
+    disable_git_mounts,
+)
 from aicage.runtime.docker_args.support.git_support import detected_git_mounts
 from aicage.runtime.menu._interaction_types import ConfigSelectionResult
 from aicage.runtime.menu.scope_change import ConfigScopeChange
@@ -30,11 +34,12 @@ from ._models import (
     CustomShareValue,
     HostAccessConfirmValues,
 )
-from ._mount_display import git_support_config_label
+from ._mount_display import credential_config_label, git_support_config_label
 from ._state import OverviewState
 from ._textual_app import TextualApp
 from .services.base_support import base_metadata_for_draft, ensure_base_default
 from .services.custom_share_flow import add_custom_share, update_custom_share
+from .services.execution_reporting import ExecutionReporter
 from .services.host_access import apply_host_access
 from .services.host_access_flow import confirm_and_apply_host_access
 from .services.summary import extras_values, shares_values
@@ -50,24 +55,37 @@ _ScreenResultT = TypeVar("_ScreenResultT")
 _GIT_MOUNT_KEYS: tuple[str, ...] = (
     MOUNT_GITCONFIG_KEY,
     MOUNT_GITROOT_KEY,
+)
+_CREDENTIAL_MOUNT_KEYS: tuple[str, ...] = (
     MOUNT_GNUPG_KEY,
     MOUNT_SSH_KEY,
 )
 
 
-class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
+class ConfigApp(
+    TextualApp[ConfigSelectionResult | ConfigScopeChange | BaseException | None]
+):
     BINDINGS = [
         Binding("enter", "accept", "OK"),
         Binding("escape", "cancel", "Cancel"),
         *TextualApp.BINDINGS,
     ]
 
-    def __init__(self, draft: RunConfigDraft, context: ConfigContext) -> None:
+    def __init__(
+        self,
+        draft: RunConfigDraft,
+        context: ConfigContext,
+        reporter: ExecutionReporter,
+    ) -> None:
         super().__init__(draft.scope_title)
         self._draft = draft
         self._config_context = context
+        self._reporter = reporter
         self._apply_git_cli_preference()
-        self._mark_new_config_auto_git_mounts_pending()
+        apply_cli_credential_mount_preferences(
+            self._draft.agent_cfg, self._draft.parsed
+        )
+        self._mark_new_config_auto_mounts_pending()
         self._state = self._initial_state()
 
     def compose(self) -> ComposeResult:
@@ -143,17 +161,17 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
     ) -> None:
         self._change_scope(message.scope)
 
-    def on_overview_git_support_changed(
-        self, message: Overview.GitSupportChanged
+    def on_overview_host_access_changed(
+        self, message: Overview.HostAccessChanged
     ) -> None:
         previous_value = getattr(self._draft.effective_agent_cfg.mounts, message.key)
         setattr(self._draft.agent_cfg.mounts, message.key, message.value)
         if message.value is not False and (
             message.value is None or previous_value is not True
         ):
-            self._draft.pending_git_mounts.add(message.key)
+            self._pending_mounts(message.source).add(message.key)
         else:
-            self._draft.pending_git_mounts.discard(message.key)
+            self._pending_mounts(message.source).discard(message.key)
 
     async def _edit_base(self) -> None:
         selected = await self._push_view(
@@ -248,7 +266,9 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
             overview.refresh_scope(self._draft.scope)
             self._focus_last_section()
 
-    def _finish(self, result: ConfigSelectionResult | ConfigScopeChange | None) -> None:
+    def _finish(
+        self, result: ConfigSelectionResult | ConfigScopeChange | BaseException | None
+    ) -> None:
         self.exit(result)
 
     def _focus_last_section(self) -> None:
@@ -266,9 +286,12 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
     async def _confirm_undecided_built_in_shares(self) -> bool:
         overview = self._overview()
         self._state.custom_shares = overview.current_custom_shares()
-        pending_auto_git_mounts = {
+        pending_auto_mounts = {
             key
-            for key in self._draft.pending_git_mounts
+            for key in [
+                *self._draft.pending_git_mounts,
+                *self._draft.pending_credential_mounts,
+            ]
             if getattr(self._draft.agent_cfg.mounts, key) is None
         }
         accepted, built_in_shares = await confirm_and_apply_host_access(
@@ -287,21 +310,19 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
             ),
             self._confirm_host_access,
         )
-        self._restore_confirmed_auto_git_mounts(
-            pending_auto_git_mounts, built_in_shares
-        )
+        self._restore_confirmed_auto_mounts(pending_auto_mounts, built_in_shares)
         self._state.built_in_shares = [
             item for item in built_in_shares if item.path is not None
         ]
         return accepted
 
-    def _restore_confirmed_auto_git_mounts(
+    def _restore_confirmed_auto_mounts(
         self,
-        pending_auto_git_mounts: set[str],
+        pending_auto_mounts: set[str],
         built_in_shares: list[BuiltInShareValue],
     ) -> None:
         for item in built_in_shares:
-            if item.key in pending_auto_git_mounts and item.enabled:
+            if item.key in pending_auto_mounts and item.enabled:
                 setattr(self._draft.agent_cfg.mounts, item.key, None)
 
     def _apply_current_host_access(self) -> None:
@@ -311,18 +332,27 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
         pending_git_mounts = {
             item.key
             for item in current_built_in_shares
-            if item.source is BuiltInShareSource.GIT_SUPPORT
+            if item.source == BuiltInShareSource.GIT_SUPPORT
             and item.enabled
             and item.persisted is not True
         }
-        if self._uses_git_support_screen():
+        pending_credential_mounts = {
+            item.key
+            for item in current_built_in_shares
+            if item.source == BuiltInShareSource.CREDENTIALS
+            and item.enabled
+            and item.persisted is not True
+        }
+        if self._uses_host_access_screen():
             self._draft.pending_git_mounts.update(pending_git_mounts)
+            self._draft.pending_credential_mounts.update(pending_credential_mounts)
         else:
             self._draft.pending_git_mounts = pending_git_mounts
+            self._draft.pending_credential_mounts = pending_credential_mounts
         self._draft.pending_extension_mounts = {
             item.key
             for item in current_built_in_shares
-            if item.source is BuiltInShareSource.EXTENSION
+            if item.source == BuiltInShareSource.EXTENSION
             and item.enabled
             and item.persisted is not True
         }
@@ -353,8 +383,9 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
         return await self._push_view(
             HostAccessConfirmScreen(
                 values.docker_options,
-                values.git_support_shares,
+                values.git_shares,
                 values.extension_shares,
+                values.credential_shares,
                 self._draft.scope,
             )
         )
@@ -366,7 +397,7 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
             built_in_shares = [
                 (
                     replace(item, enabled=True)
-                    if item.source is BuiltInShareSource.GIT_SUPPORT
+                    if item.source == BuiltInShareSource.GIT_SUPPORT
                     and item.key in detected_mounts
                     else item
                 )
@@ -392,8 +423,9 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
                 ].mounts.docker
                 is True
             ),
-            git_support_values=(
-                self._git_support_values() if self._uses_git_support_screen() else {}
+            git_values=self._git_values() if self._uses_host_access_screen() else {},
+            credential_values=(
+                self._credential_values() if self._uses_host_access_screen() else {}
             ),
         )
 
@@ -402,50 +434,83 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
             (
                 replace(item, persisted=None)
                 if (
-                    item.source is BuiltInShareSource.GIT_SUPPORT
+                    item.source == BuiltInShareSource.GIT_SUPPORT
                     and item.key in self._draft.pending_git_mounts
                 )
                 or (
-                    item.source is BuiltInShareSource.EXTENSION
+                    item.source == BuiltInShareSource.CREDENTIALS
+                    and item.key in self._draft.pending_credential_mounts
+                )
+                or (
+                    item.source == BuiltInShareSource.EXTENSION
                     and item.key in self._draft.pending_extension_mounts
                 )
                 else item
             )
             for item in shares_values(self._draft, self._config_context).built_in_shares
             if not (
-                self._uses_git_support_screen()
-                and item.source is BuiltInShareSource.GIT_SUPPORT
+                self._uses_host_access_screen()
+                and item.source
+                in {BuiltInShareSource.GIT_SUPPORT, BuiltInShareSource.CREDENTIALS}
             )
         ]
 
     def _current_built_in_shares(self, overview: Overview) -> list[BuiltInShareValue]:
         return [
             *overview.current_built_in_shares(),
-            *self._pending_git_support_shares(),
+            *self._pending_host_access_shares(),
         ]
 
-    def _pending_git_support_shares(self) -> list[BuiltInShareValue]:
+    def _pending_host_access_shares(self) -> list[BuiltInShareValue]:
+        return [
+            *self._pending_mount_shares(
+                BuiltInShareSource.GIT_SUPPORT,
+                _GIT_MOUNT_KEYS,
+                self._draft.pending_git_mounts,
+                git_support_config_label,
+            ),
+            *self._pending_mount_shares(
+                BuiltInShareSource.CREDENTIALS,
+                _CREDENTIAL_MOUNT_KEYS,
+                self._draft.pending_credential_mounts,
+                credential_config_label,
+            ),
+        ]
+
+    def _pending_mount_shares(
+        self,
+        source: BuiltInShareSource,
+        keys: tuple[str, ...],
+        pending_keys: set[str],
+        label: Callable[[str], str],
+    ) -> list[BuiltInShareValue]:
         return [
             BuiltInShareValue(
-                source=BuiltInShareSource.GIT_SUPPORT,
+                source=source,
                 key=key,
                 label=(
-                    f"(Auto) {git_support_config_label(key)}"
+                    f"(Auto) {label(key)}"
                     if getattr(self._draft.agent_cfg.mounts, key) is None
-                    else git_support_config_label(key)
+                    else label(key)
                 ),
                 path=None,
                 persisted=None,
                 enabled=True,
             )
-            for key in _GIT_MOUNT_KEYS
-            if key in self._draft.pending_git_mounts
+            for key in keys
+            if key in pending_keys
             and getattr(self._draft.agent_cfg.mounts, key) is not False
         ]
 
-    def _git_support_values(self) -> dict[str, bool | None]:
+    def _git_values(self) -> dict[str, bool | None]:
         return {
             key: getattr(self._draft.agent_cfg.mounts, key) for key in _GIT_MOUNT_KEYS
+        }
+
+    def _credential_values(self) -> dict[str, bool | None]:
+        return {
+            key: getattr(self._draft.agent_cfg.mounts, key)
+            for key in _CREDENTIAL_MOUNT_KEYS
         }
 
     def _apply_git_cli_preference(self) -> None:
@@ -454,15 +519,15 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
         if self._draft.parsed.git is False:
             disable_git_mounts(self._draft.agent_cfg)
             return
-        if not self._uses_git_support_screen():
+        if not self._uses_host_access_screen():
             return
         for key in detected_git_mounts(self._draft.project_path):
             if getattr(self._draft.agent_cfg.mounts, key) is None:
                 setattr(self._draft.agent_cfg.mounts, key, True)
                 self._draft.pending_git_mounts.add(key)
 
-    def _mark_new_config_auto_git_mounts_pending(self) -> None:
-        if not self._uses_git_support_screen() or self._draft.scope_config_exists.get(
+    def _mark_new_config_auto_mounts_pending(self) -> None:
+        if not self._uses_host_access_screen() or self._draft.scope_config_exists.get(
             self._draft.scope, True
         ):
             return
@@ -471,9 +536,21 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
             for key in _GIT_MOUNT_KEYS
             if getattr(self._draft.agent_cfg.mounts, key) is None
         )
+        self._draft.pending_credential_mounts.update(
+            key
+            for key in _CREDENTIAL_MOUNT_KEYS
+            if getattr(self._draft.agent_cfg.mounts, key) is None
+        )
 
-    def _uses_git_support_screen(self) -> bool:
+    def _uses_host_access_screen(self) -> bool:
         return self._draft.scope in {"global", "tree"}
+
+    def _pending_mounts(self, source: BuiltInShareSource) -> set[str]:
+        return (
+            self._draft.pending_git_mounts
+            if source == BuiltInShareSource.GIT_SUPPORT
+            else self._draft.pending_credential_mounts
+        )
 
     def _docker_socket_value_for_confirmation(self) -> bool | None:
         if self._draft.pending_docker_socket:

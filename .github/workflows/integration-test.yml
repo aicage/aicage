@@ -103,12 +103,14 @@ jobs:
             mkdir -p "$target_dir"
             cp -R "$path" "$target_dir/"
           done < <(
-            find "${TMPDIR:-/tmp}" \
-              \( -type d -path "*/pytest-of-${USER}/*/.aicage" \
-              -o -type d -path "*/aicage-test-home-*/.aicage" \) \
-              2>/dev/null | sort -u
+            {
+              find "${TMPDIR:-/tmp}" \
+                \( -type d -path "*/pytest-of-${USER}/*/.aicage" \
+                -o -type d -path "*/aicage-test-home-*/.aicage" \) \
+                2>/dev/null
+              find "$GITHUB_WORKSPACE/.aicage-test-tmp" -type d -name .aicage 2>/dev/null
+            } | sort -u
           )
-
       - name: "On failure: Upload aicage logs"
         if: failure()
         uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9  # v7.0.2

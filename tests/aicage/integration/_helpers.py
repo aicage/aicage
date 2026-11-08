@@ -3,12 +3,13 @@ import select
 import stat
 import subprocess
 import sys
+import tempfile
 import threading
 from collections.abc import Iterator
 from contextlib import contextmanager
 from importlib import import_module
 from pathlib import Path
-from shutil import copytree
+from shutil import copytree, rmtree
 from typing import Any, cast
 
 import pytest
@@ -124,15 +125,28 @@ def require_proxy_integration() -> None:
         )
 
 
+@contextmanager
+def temporary_test_root(parent: Path) -> Iterator[Path]:
+    root = Path(tempfile.mkdtemp(dir=parent))
+    try:
+        yield root
+    finally:
+        # Docker Desktop can keep Windows bind mounts open after the target exits.
+        # The ignored parent is removed with the CI workspace.
+        if os.name != "nt":
+            rmtree(root)
+
+
 def setup_workspace(
     monkeypatch: pytest.MonkeyPatch,
     tmp_path: Path,
     agent_name: str,
     *,
     docker_args: str | None = None,
+    workspace_path: Path | None = None,
 ) -> tuple[Path, dict[str, str]]:
     home_dir = Path.home().resolve()
-    workspace = tmp_path / "workspace"
+    workspace = workspace_path or tmp_path / "workspace"
     workspace.mkdir()
     workspace = workspace.resolve()
     monkeypatch.chdir(workspace)

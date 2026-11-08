@@ -1,7 +1,7 @@
 from aicage._logging import get_logger
-from aicage.registry._ensure_util_image import ensure_util_image
 from aicage.registry._errors import RegistryError
 from aicage.registry._logs import pull_log_path
+from aicage.registry.ensure_util_image import ensure_util_image
 from aicage.reporting import OperationReporter
 
 

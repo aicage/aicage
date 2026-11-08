@@ -27,6 +27,8 @@ _BASE_OPTION = "--base"
 _SHARE_OPTION = "--share"
 _EXTENSION_OPTION = "--extension"
 _GIT_OPTION = "--git"
+_SSH_OPTION = "--ssh"
+_GPG_OPTION = "--gpg"
 _CONFIG_OPTION = "--config"
 _HELP_SHORT_OPTION = "-h"
 _HELP_OPTION = "--help"
@@ -38,7 +40,10 @@ _OPTIONS_WITH_VALUES: set[str] = {
     _SHARE_OPTION,
     _EXTENSION_OPTION,
     _GIT_OPTION,
+    _SSH_OPTION,
+    _GPG_OPTION,
 }
+_TOGGLE_OPTIONS = {_GIT_OPTION, _SSH_OPTION, _GPG_OPTION}
 _ConfigAction = Literal["info", "remove", "global", "tree"]
 
 _CONFIG_ACTION_ALIASES: dict[str, _ConfigAction] = {
@@ -92,7 +97,17 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
     parser.add_argument(
         _GIT_OPTION,
         choices=["on", "off"],
-        help="Enable or disable Git support mounts.",
+        help="Enable or disable Git configuration and repository mounts.",
+    )
+    parser.add_argument(
+        _SSH_OPTION,
+        choices=["on", "off"],
+        help="Enable or disable SSH credential forwarding.",
+    )
+    parser.add_argument(
+        _GPG_OPTION,
+        choices=["on", "off"],
+        help="Enable or disable GnuPG credential forwarding.",
     )
     parser.add_argument(
         _CONFIG_OPTION,
@@ -106,7 +121,7 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
         help="Show help message and exit.",
     )
     pre_argv, post_argv = _split_argv(argv)
-    pre_argv = _normalize_git_option(pre_argv)
+    pre_argv = _normalize_toggle_options(pre_argv)
 
     opts: argparse.Namespace
     remaining: list[str]
@@ -121,7 +136,9 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
 
     option_argv, agent_argv = _split_before_agent_args(pre_argv, post_argv)
     opts, remaining = parser.parse_known_args(option_argv)
-    opts.git = _git_value(opts.git)
+    opts.git = _toggle_value(opts.git)
+    opts.ssh = _toggle_value(opts.ssh)
+    opts.gpg = _toggle_value(opts.gpg)
     remaining.extend(agent_argv)
     if (
         opts.config is None
@@ -134,9 +151,11 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
         usage: str = (
             "Usage:\n"
             "  aicage <agent>\n"
-            "  aicage [--menu <mode>] [--dry-run] [--docker] [--acp-wsl] [--base <id>] [--git [on|off]] "
+            "  aicage [--menu <mode>] [--dry-run] [--docker] [--acp-wsl] [--base <id>] "
+            "[--git [on|off]] [--ssh [on|off]] [--gpg [on|off]] "
             "[--share <path>]... [--extension <id>]... <agent> [<agent-args>]\n"
-            "  aicage [--menu <mode>] [--dry-run] [--docker] [--acp-wsl] [--base <id>] [--git [on|off]] "
+            "  aicage [--menu <mode>] [--dry-run] [--docker] [--acp-wsl] [--base <id>] "
+            "[--git [on|off]] [--ssh [on|off]] [--gpg [on|off]] "
             "[--share <path>]... [--extension <id>]... <docker-args> -- <agent>"
             " [<agent-args>]\n"
             "  aicage --config\n"
@@ -149,17 +168,19 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
             "  aicage [<docker-args>] --config <global|tree> -- <agent>\n"
             "  aicage --version\n\n"
             "Arguments:\n"
-            "  --dry-run        Print the generated docker run command and exit.\n"
-            "  --menu <mode>    Choose menu mode: ui or none.\n"
-            "  --docker         Mount /run/docker.sock into the container.\n"
-            "  --acp-wsl        Translate ACP paths between Windows and WSL.\n"
-            "  --base <id>      Select the agent base image.\n"
-            "  --git [on|off]   Enable or disable Git support mounts (default: on).\n"
-            "  --share <path>   Mount a host path into the container. Repeatable.\n"
-            "  --extension <id> Select an extension. Repeatable.\n"
+            "  --dry-run            Print the generated docker run command and exit.\n"
+            "  --menu <mode>        Choose menu mode: ui or none.\n"
+            "  --docker             Mount /run/docker.sock into the container.\n"
+            "  --acp-wsl            Translate ACP paths between Windows and WSL.\n"
+            "  --base <id>          Select the agent base image.\n"
+            "  --git [on|off]       Enable or disable Git configuration and repository mounts (default: on).\n"
+            "  --ssh [on|off]       Enable or disable SSH credential forwarding; --ssh means on.\n"
+            "  --gpg [on|off]       Enable or disable GnuPG credential forwarding; --gpg means on.\n"
+            "  --share <path>       Mount a host path into the container. Repeatable.\n"
+            "  --extension <id>     Select an extension. Repeatable.\n"
             "  --config [<command>] Inspect or change saved configuration; see usage above.\n"
-            "  -v, --version    Print aicage version and exit.\n"
-            "  -h, --help       Show this help and exit.\n\n"
+            "  -v, --version        Print aicage version and exit.\n"
+            "  -h, --help           Show this help and exit.\n\n"
             "Behavior:\n"
             "  - '--menu ui' uses the default config overview.\n"
             "  - '--menu none' skips menus and uses defaults.\n"
@@ -193,6 +214,8 @@ def parse_cli(argv: Sequence[str]) -> CliArgs:
         opts.menu,
         extensions=opts.extension,
         git=opts.git,
+        ssh=opts.ssh,
+        gpg=opts.gpg,
         base=opts.base,
         acp_wsl=opts.acp_wsl,
     )
@@ -207,12 +230,12 @@ def _split_argv(argv: Sequence[str]) -> tuple[list[str], list[str] | None]:
     return pre_argv, post_argv
 
 
-def _normalize_git_option(argv: list[str]) -> list[str]:
+def _normalize_toggle_options(argv: list[str]) -> list[str]:
     normalized: list[str] = []
     index = 0
     while index < len(argv):
         token = argv[index]
-        if token != _GIT_OPTION:
+        if token not in _TOGGLE_OPTIONS:
             normalized.append(token)
             index += 1
             continue
@@ -220,12 +243,12 @@ def _normalize_git_option(argv: list[str]) -> list[str]:
             normalized.extend((token, argv[index + 1]))
             index += 2
             continue
-        normalized.append(f"{_GIT_OPTION}=on")
+        normalized.append(f"{token}=on")
         index += 1
     return normalized
 
 
-def _git_value(value: str | None) -> bool | None:
+def _toggle_value(value: str | None) -> bool | None:
     if value is None:
         return None
     return value == "on"
@@ -297,6 +320,8 @@ def _parse_config_command(
             opts.menu,
             extensions=opts.extension,
             git=opts.git,
+            ssh=opts.ssh,
+            gpg=opts.gpg,
             base=opts.base,
             scope=scope,
         )
@@ -310,6 +335,8 @@ def _parse_config_command(
         or opts.share
         or opts.extension
         or opts.git is not None
+        or opts.ssh is not None
+        or opts.gpg is not None
         or opts.menu != "ui"
     ):
         raise CliError("No additional arguments are allowed with --config.")
@@ -331,6 +358,8 @@ def _parse_config_command(
         opts.menu,
         extensions=opts.extension,
         git=opts.git,
+        ssh=opts.ssh,
+        gpg=opts.gpg,
         base=opts.base,
         scope=config_action,
     )

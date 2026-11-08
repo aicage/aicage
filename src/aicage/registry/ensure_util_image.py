@@ -11,29 +11,29 @@ from aicage.registry.digest.remote_digest import get_remote_digest
 from aicage.reporting import OperationReporter
 
 
-class _UtilImageSetupAction(Enum):
+class UtilImageSetupAction(Enum):
     SKIP = "skip"
     SETUP = "setup"
 
 
-def _util_image_setup_action(image_ref: str) -> _UtilImageSetupAction:
+def util_image_setup_action(image_ref: str) -> UtilImageSetupAction:
     repository = _repository(image_ref)
     local_digest = get_local_repo_digest_for_repo(image_ref, repository)
     if local_digest is not None:
         remote_digest = get_remote_digest(image_ref)
         if remote_digest is None or remote_digest == local_digest:
-            return _UtilImageSetupAction.SKIP
-    return _UtilImageSetupAction.SETUP
+            return UtilImageSetupAction.SKIP
+    return UtilImageSetupAction.SETUP
 
 
 def ensure_util_image(
     image_ref: str,
     reporter: OperationReporter,
     *,
-    setup_action: _UtilImageSetupAction | None = None,
+    setup_action: UtilImageSetupAction | None = None,
 ) -> None:
-    action = setup_action or _util_image_setup_action(image_ref)
-    if action is _UtilImageSetupAction.SKIP:
+    action = setup_action or util_image_setup_action(image_ref)
+    if action is UtilImageSetupAction.SKIP:
         return
     repository = _repository(image_ref)
     local_digest = get_local_repo_digest_for_repo(image_ref, repository)

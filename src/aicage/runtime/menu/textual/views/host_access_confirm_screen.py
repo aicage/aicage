@@ -16,19 +16,25 @@ class HostAccessConfirmScreen(CancelableScreen[HostAccessConfirmValues | None]):
     def __init__(
         self,
         docker_options: list[DockerOptionValue],
-        git_support_shares: list[BuiltInShareValue],
+        git_shares: list[BuiltInShareValue],
         extension_shares: list[BuiltInShareValue],
+        credential_shares: list[BuiltInShareValue] | str | None = None,
         scope: str = "project",
     ) -> None:
         super().__init__()
         self._docker_options = docker_options
-        self._git_support_shares = git_support_shares
+        self._git_shares = git_shares
+        if isinstance(credential_shares, str):
+            scope = credential_shares
+            credential_shares = None
+        self._credential_shares = credential_shares or []
         self._extension_shares = extension_shares
         self._scope = scope
 
     def compose(self) -> ComposeResult:
         docker_section = self._docker_section()
-        git_support_section = self._git_support_section()
+        git_section = self._git_section()
+        credential_section = self._credential_section()
         extension_section = self._extension_section()
         yield Container(
             Container(
@@ -39,7 +45,8 @@ class HostAccessConfirmScreen(CancelableScreen[HostAccessConfirmValues | None]):
                     classes="screen_hint",
                 ),
                 *(docker_section if docker_section is not None else []),
-                *(git_support_section if git_support_section is not None else []),
+                *(git_section if git_section is not None else []),
+                *(credential_section if credential_section is not None else []),
                 *(extension_section if extension_section is not None else []),
                 Horizontal(
                     Button("Cancel", id="cancel", variant="default"),
@@ -54,7 +61,8 @@ class HostAccessConfirmScreen(CancelableScreen[HostAccessConfirmValues | None]):
     def on_mount(self) -> None:
         self.query_one("#ok", Button).focus()
         self._clear_initial_highlight("#docker_confirm_list")
-        self._clear_initial_highlight("#git_support_confirm_list")
+        self._clear_initial_highlight("#git_confirm_list")
+        self._clear_initial_highlight("#credential_confirm_list")
         self._clear_initial_highlight("#extension_confirm_list")
 
     def action_accept(self) -> None:
@@ -73,13 +81,17 @@ class HostAccessConfirmScreen(CancelableScreen[HostAccessConfirmValues | None]):
                         enabled=option.key in selected,
                     )
                 )
-        confirmed_git_support_shares = []
-        if self._git_support_shares:
-            confirmed_git_support_shares = current_built_in_shares(
-                set(
-                    self.query_one("#git_support_confirm_list", SelectionList).selected
-                ),
-                self._git_support_shares,
+        confirmed_git_shares = []
+        if self._git_shares:
+            confirmed_git_shares = current_built_in_shares(
+                set(self.query_one("#git_confirm_list", SelectionList).selected),
+                self._git_shares,
+            )
+        confirmed_credential_shares = []
+        if self._credential_shares:
+            confirmed_credential_shares = current_built_in_shares(
+                set(self.query_one("#credential_confirm_list", SelectionList).selected),
+                self._credential_shares,
             )
         confirmed_extension_shares = []
         if self._extension_shares:
@@ -90,7 +102,8 @@ class HostAccessConfirmScreen(CancelableScreen[HostAccessConfirmValues | None]):
         self.dismiss(
             HostAccessConfirmValues(
                 docker_options=confirmed_docker_options,
-                git_support_shares=confirmed_git_support_shares,
+                git_shares=confirmed_git_shares,
+                credential_shares=confirmed_credential_shares,
                 extension_shares=confirmed_extension_shares,
             )
         )
@@ -139,29 +152,49 @@ class HostAccessConfirmScreen(CancelableScreen[HostAccessConfirmValues | None]):
             ),
         ]
 
-    def _git_support_section(self) -> list[Static | Vertical] | None:
-        if not self._git_support_shares:
+    def _git_section(self) -> list[Static | Vertical] | None:
+        if not self._git_shares:
             return None
         return [
-            Static("Git support", classes="screen_subtitle"),
+            Static("Git", classes="screen_subtitle"),
             Static(
-                self._git_support_hint(),
+                self._git_hint(),
                 classes="screen_hint confirm_hint",
             ),
             Vertical(
-                self._git_support_selection_list(),
+                self._git_selection_list(),
                 classes="checkbox_group confirm_section",
             ),
         ]
 
-    def _git_support_hint(self) -> str:
+    def _git_hint(self) -> str:
         if self._scope == "global":
-            return "Persists Git support settings for every project."
+            return "Persists Git settings for every project."
         if self._scope == "tree":
-            return (
-                "Persists Git support settings for this directory and its descendants."
-            )
-        return "Bind mounts host files and keys used for git, SSH remotes, and signing."
+            return "Persists Git settings for this directory and its descendants."
+        return "Bind mounts host files used by Git."
+
+    def _credential_section(self) -> list[Static | Vertical] | None:
+        if not self._credential_shares:
+            return None
+        return [
+            Static("Credentials", classes="screen_subtitle"),
+            Static(
+                self._credential_hint(),
+                classes="screen_hint confirm_hint",
+            ),
+            Vertical(
+                self._credential_selection_list(),
+                classes="checkbox_group confirm_section",
+            ),
+        ]
+
+    def _credential_hint(self) -> str:
+        if self._scope == "global":
+            return "Persists SSH and GnuPG settings for every project."
+        if self._scope == "tree":
+            return "Persists SSH and GnuPG settings for this directory and its descendants."
+        return "Lets the container use SSH and GnuPG keys without private-key mounts."
 
     def _extension_section(self) -> list[Static | Vertical] | None:
         if not self._extension_shares:
@@ -205,10 +238,17 @@ class HostAccessConfirmScreen(CancelableScreen[HostAccessConfirmValues | None]):
             )
         return details
 
-    def _git_support_selection_list(self) -> SelectionList:
+    def _git_selection_list(self) -> SelectionList:
         return SelectionList(
-            *mount_selection_rows(confirm_mount_list_items(self._git_support_shares)),
-            id="git_support_confirm_list",
+            *mount_selection_rows(confirm_mount_list_items(self._git_shares)),
+            id="git_confirm_list",
+            compact=True,
+        )
+
+    def _credential_selection_list(self) -> SelectionList:
+        return SelectionList(
+            *mount_selection_rows(confirm_mount_list_items(self._credential_shares)),
+            id="credential_confirm_list",
             compact=True,
         )
 

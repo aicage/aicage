@@ -30,6 +30,7 @@ class DockerCliTests(TestCase):
 
         run_mock.assert_called_once_with(
             ["docker", "run"],
+            stdin=None,
             stdout=None,
             stderr=None,
             env={"DOCKER_CLI_HINTS": "false"},

@@ -6,6 +6,7 @@ from aicage.constants import (
     COSIGN_IDENTITY_REGEXP_TEMPLATE,
     COSIGN_IMAGE_REF,
     COSIGN_OIDC_ISSUER,
+    CREDENTIAL_AGENT_IMAGE,
     IMAGE_BASE_REPOSITORY,
     IMAGE_BASE_SOURCE_URL,
     IMAGE_REGISTRY,
@@ -41,6 +42,10 @@ _OFFICIAL_IMAGE_ANNOTATIONS: dict[str, dict[str, str]] = {
     },
 }
 _REPOSITORY_PARTS_WITH_OWNER: int = 3
+_CREDENTIAL_AGENT_ANNOTATIONS: dict[str, str] = {
+    "org.opencontainers.image.source": IMAGE_UTIL_SOURCE_URL,
+    "org.opencontainers.image.title": "aicage-image-util credential agent",
+}
 
 
 def resolve_verified_digest(
@@ -62,7 +67,7 @@ def resolve_verified_digest(
             logger.info(
                 "Image signature verification output for %s:\n%s", digest_ref, output
             )
-        _verify_manifest_annotations(digest_ref)
+        _verify_manifest_annotations(digest_ref, expected_image_ref=image_ref)
         logger.info("Image signature verification succeeded for %s", digest_ref)
         return digest_ref
     if output:
@@ -113,9 +118,11 @@ def _cosign_identity_regexp_for_image(image_ref: str) -> str:
     return COSIGN_IDENTITY_REGEXP_TEMPLATE.format(owner=owner)
 
 
-def _verify_manifest_annotations(image_ref: str) -> None:
-    expected_annotations = _OFFICIAL_IMAGE_ANNOTATIONS.get(
-        _repository_for_image(image_ref)
+def _verify_manifest_annotations(
+    image_ref: str, *, expected_image_ref: str | None = None
+) -> None:
+    expected_annotations = _expected_manifest_annotations(
+        expected_image_ref or image_ref
     )
     if expected_annotations is None:
         return
@@ -128,6 +135,12 @@ def _verify_manifest_annotations(image_ref: str) -> None:
                 f"Image manifest annotation {key} mismatch for {image_ref}: "
                 f"expected {expected_value!r}, got {actual_value!r}."
             )
+
+
+def _expected_manifest_annotations(image_ref: str) -> dict[str, str] | None:
+    if image_ref == CREDENTIAL_AGENT_IMAGE:
+        return _CREDENTIAL_AGENT_ANNOTATIONS
+    return _OFFICIAL_IMAGE_ANNOTATIONS.get(_repository_for_image(image_ref))
 
 
 def _manifest_annotations(image_ref: str) -> dict[str, str]:

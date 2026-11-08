@@ -16,10 +16,8 @@ from ..resolvers import (
     docker_socket,
     git_config,
     git_root,
-    gpg,
     project,
     shares,
-    ssh_keys,
 )
 from ._mounts import map_mount_requests
 from .resolver_types import ResolvedArgs, _Resolver
@@ -61,8 +59,6 @@ def _resolver_sequence() -> tuple[_Resolver, ...]:
         agent_config.resolve,
         acp_wsl.resolve,
         git_config.resolve,
-        gpg.resolve,
-        ssh_keys.resolve,
         git_root.resolve,
         docker_socket.resolve,
         shares.resolve,

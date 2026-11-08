@@ -20,6 +20,7 @@ AGENT_VERSION_CHECK_STATE_DIR: Path = (
 )
 IMAGE_EXTENDED_STATE_DIR: Path = _CONFIG_BASE_DIR / "state/image-extended/state"
 IMAGE_EXTENDED_BUILD_STATE_DIR: Path = _CONFIG_BASE_DIR / "state/image-extended/build"
+CREDENTIAL_AGENT_LOCK_PATH: Path = _CONFIG_BASE_DIR / "state/credential-agent.lock"
 
 _LOG_DIR: Path = _CONFIG_BASE_DIR / "logs"
 GLOBAL_LOG_PATH: Path = _LOG_DIR / "aicage.log"

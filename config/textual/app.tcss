@@ -166,26 +166,21 @@ Screen {
     margin-right: 1;
 }
 
-#git_support_overview {
-    height: 4;
-    width: 100%;
-}
-
-.git_support_row {
+.host_access_row {
     height: 1;
     width: 100%;
 }
 
-.git_support_label {
+.host_access_label {
     width: 1fr;
     height: 1;
     margin-left: 1;
 }
 
-.git_support_control {
+.host_access_control {
     width: 6;
     min-width: 6;
-    height: auto;
+    height: 1;
     border: none;
     background: $primary 30%;
     color: $text;
@@ -193,8 +188,8 @@ Screen {
     content-align: left middle;
 }
 
-.git_support_control:hover,
-.git_support_control:focus {
+.host_access_control:hover,
+.host_access_control:focus {
     background: $primary;
     color: $surface;
 }

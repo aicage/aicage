@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from typing import Protocol
 
 from aicage.cli_types import MenuMode
@@ -33,6 +34,10 @@ class RuntimeInteraction(Protocol):
 
     def execute_image_setup(
         self, run_config: RunConfig, update_approved: bool
+    ) -> None: ...
+
+    def execute_operation(
+        self, operation: Callable[[OperationReporter], None]
     ) -> None: ...
 
 

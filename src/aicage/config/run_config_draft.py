@@ -23,6 +23,7 @@ class RunConfigDraft:
     scope: str = "project"
     scope_config_exists: dict[str, bool] = field(default_factory=dict)
     pending_git_mounts: set[str] = field(default_factory=set)
+    pending_credential_mounts: set[str] = field(default_factory=set)
     pending_extension_mounts: set[str] = field(default_factory=set)
     pending_docker_socket: bool = False
 

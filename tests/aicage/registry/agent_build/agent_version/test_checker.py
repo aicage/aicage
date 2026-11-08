@@ -5,6 +5,7 @@ from unittest import TestCase, mock
 import yaml
 
 from aicage.config.agent.models import AgentMetadata
+from aicage.constants import VERSION_CHECK_IMAGE
 from aicage.registry._errors import RegistryError
 from aicage.registry.agent_build.agent_version import _command as command
 from aicage.registry.agent_build.agent_version._store import _VERSION_KEY
@@ -86,7 +87,7 @@ class AgentVersionCheckTests(TestCase):
             data = yaml.safe_load(stored.read_text(encoding="utf-8"))
             self.assertEqual("1.2.3", data[_VERSION_KEY])
             run_version_check_image_mock.assert_called_once_with(
-                "ghcr.io/aicage/aicage-image-util:agent-version",
+                VERSION_CHECK_IMAGE,
                 agent_dir,
                 reporter=reporter,
             )
@@ -129,7 +130,7 @@ class AgentVersionCheckTests(TestCase):
                     )
             self.assertIn("version check failed", str(raised.exception))
             run_version_check_image_mock.assert_called_once_with(
-                "ghcr.io/aicage/aicage-image-util:agent-version",
+                VERSION_CHECK_IMAGE,
                 agent_dir,
                 reporter=reporter,
             )
@@ -184,7 +185,7 @@ class AgentVersionCheckTests(TestCase):
 
             self.assertEqual("9.9.9", result)
             image_check_mock.assert_called_once_with(
-                "ghcr.io/aicage/aicage-image-util:agent-version",
+                VERSION_CHECK_IMAGE,
                 agent_dir,
                 reporter=reporter,
             )
