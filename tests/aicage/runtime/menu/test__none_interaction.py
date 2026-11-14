@@ -135,6 +135,36 @@ class ConfigureRunTests(TestCase):
         git_mount_mock.assert_called_once_with(mock.ANY, draft.agent_cfg)
         mount_mock.assert_called_once()
 
+    def test_configure_run_selects_configured_extensions_without_cli_extensions(
+        self,
+    ) -> None:
+        resolved = _none_interaction._NoneInteraction(mock.Mock())
+        draft = _build_draft(
+            AgentConfig(base="ubuntu"),
+            ParsedArgs(False, "", "codex", [], False, [], menu="none"),
+        )
+        selection = mock.Mock()
+        selection.base = "ubuntu"
+        context = _build_context()
+        context.project_cfg.agents["codex"] = AgentConfig(
+            base="ubuntu", extensions=["gh"]
+        )
+
+        with (
+            mock.patch(
+                "aicage.runtime.menu._none_interaction.select_agent_image",
+                return_value=selection,
+            ) as select_mock,
+            mock.patch.object(draft, "apply_selection"),
+            mock.patch(
+                "aicage.runtime.menu._none_interaction.apply_mount_preferences"
+            ),
+        ):
+            resolved.configure_run(draft, context, "codex")
+
+        selection_interaction = select_mock.call_args.args[2]
+        self.assertEqual(["gh"], selection_interaction.choose_extensions([]))
+
     def test_configure_run_disables_git_mounts_for_git_off(self) -> None:
         resolved = _none_interaction._NoneInteraction(mock.Mock())
         draft = _build_draft(

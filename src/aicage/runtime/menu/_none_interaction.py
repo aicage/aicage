@@ -30,12 +30,20 @@ class _NoneInteraction:
     ) -> ConfigSelectionResult:
         draft.apply_cli_base()
         draft.apply_cli_extensions()
+        configured_extensions = context.project_cfg.agents.get(agent)
+        selected_extensions = (
+            draft.parsed.extensions
+            if draft.parsed is not None and draft.parsed.extensions
+            else (
+                list(configured_extensions.extensions)
+                if configured_extensions is not None
+                else []
+            )
+        )
         selection = select_agent_image(
             agent,
             context,
-            _NonInteractiveSelectionInteraction(
-                draft.parsed.extensions if draft.parsed is not None else []
-            ),
+            _NonInteractiveSelectionInteraction(selected_extensions),
         )
         draft.apply_selection(selection)
         draft.merge_shares()
