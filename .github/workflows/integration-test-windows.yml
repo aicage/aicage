@@ -86,7 +86,7 @@ jobs:
           python -m pip install -r requirements-dev.txt
 
       - name: Set up Skrog Docker WSL
-        uses: gh-workflow/setup-docker-wsl@8462801a5235dbb7ae264822c054a971f0c63b96  # v1.0.5
+        uses: gh-workflow/setup-docker-wsl@3b1c78d38debf2965034c6230924ce186e4819ab  # v1.0.7
         with:
           verify-docker-in-containers: "true"
 
