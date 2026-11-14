@@ -16,4 +16,4 @@ yq>=4.4.5,<5
 # types
 types-docker>=7.2.0.20261102,<8
 types-jsonschema>=4.26.0.20261006,<5
-types-PyYAML>=6.0.12.20261103,<7
+types-PyYAML>=6.0.12.20261111,<7
