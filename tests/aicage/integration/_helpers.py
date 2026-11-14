@@ -137,6 +137,8 @@ def setup_workspace(
     workspace = workspace.resolve()
     monkeypatch.chdir(workspace)
     projects_dir = home_dir / ".aicage/projects"
+    trees_dir = home_dir / ".aicage/config/trees"
+    global_config_path = home_dir / ".aicage/config/global.yml"
     custom_root_dir = home_dir / ".aicage-custom"
     custom_bases_path = custom_root_dir / "base-images"
     custom_agents_path = custom_root_dir / "agents"
@@ -147,6 +149,10 @@ def setup_workspace(
     version_check_dir = home_dir / ".aicage/state/agent/version-check/state"
     monkeypatch.setattr(paths_module, "PROJECTS_DIR", projects_dir)
     monkeypatch.setattr(config_store_module, "PROJECTS_DIR", projects_dir)
+    monkeypatch.setattr(paths_module, "TREES_DIR", trees_dir)
+    monkeypatch.setattr(config_store_module, "TREES_DIR", trees_dir)
+    monkeypatch.setattr(paths_module, "GLOBAL_CONFIG_PATH", global_config_path)
+    monkeypatch.setattr(config_store_module, "GLOBAL_CONFIG_PATH", global_config_path)
     monkeypatch.setattr(paths_module, "CUSTOM_BASES_DIR", custom_bases_path)
     monkeypatch.setattr(paths_module, "CUSTOM_AGENTS_DIR", custom_agents_path)
     monkeypatch.setattr(paths_module, "CUSTOM_EXTENSIONS_DIR", custom_extensions_path)

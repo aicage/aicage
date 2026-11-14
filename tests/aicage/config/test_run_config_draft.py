@@ -89,6 +89,36 @@ class RunConfigDraftTests(TestCase):
         )
         self.assertEqual(["/repo/existing"], draft.agent_cfg.shares)
 
+    def test_merge_shares_includes_inherited_shares(self) -> None:
+        project_path = Path("/repo")
+        draft = _create_run_config_draft(
+            project_path,
+            "codex",
+            _ProjectConfig(
+                path=str(project_path),
+                agents={"codex": AgentConfig(shares=["local"])},
+            ),
+            _build_parsed(shares=[]),
+            _ProjectConfig(
+                path=str(project_path),
+                agents={"codex": AgentConfig(shares=["inherited"])},
+            ),
+        )
+
+        new_shares = draft.merge_shares()
+        parsed = draft.parsed
+        if parsed is None:
+            self.fail("Expected parsed args to be available.")
+
+        self.assertEqual([], new_shares)
+        self.assertEqual(
+            [
+                str((project_path / "inherited").resolve()),
+                str((project_path / "local").resolve()),
+            ],
+            parsed.shares,
+        )
+
     def test_persist_shares_updates_config(self) -> None:
         draft = _build_draft(
             AgentConfig(shares=["/repo/existing"]),

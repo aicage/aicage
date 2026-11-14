@@ -52,7 +52,7 @@ class RunConfigDraft:
             return []
         merged_shares, new_shares = merge_share_values(
             self.parsed.shares,
-            self.agent_cfg.shares,
+            self.effective_agent_cfg.shares,
             self.project_path,
         )
         self.parsed.shares = merged_shares
