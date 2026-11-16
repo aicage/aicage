@@ -156,9 +156,7 @@ class ConfigureRunTests(TestCase):
                 return_value=selection,
             ) as select_mock,
             mock.patch.object(draft, "apply_selection"),
-            mock.patch(
-                "aicage.runtime.menu._none_interaction.apply_mount_preferences"
-            ),
+            mock.patch("aicage.runtime.menu._none_interaction.apply_mount_preferences"),
         ):
             resolved.configure_run(draft, context, "codex")
 
