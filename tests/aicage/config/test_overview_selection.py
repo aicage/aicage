@@ -67,7 +67,11 @@ class OverviewSelectionTests(TestCase):
             _ProjectConfig(
                 path="/repo",
                 agents={
-                    "codex": AgentConfig(base="ubuntu", extensions=["zeta", "alpha"])
+                    "codex": AgentConfig(
+                        base="ubuntu",
+                        image_ref="aicage-extended:codex-ubuntu-zeta-alpha",
+                        extensions=["zeta", "alpha"],
+                    )
                 },
             ),
             ParsedArgs(False, "", "codex", [], False, []),
@@ -120,6 +124,7 @@ class OverviewSelectionTests(TestCase):
             ),
             selection.image_ref,
         )
+        self.assertEqual(selection.image_ref, draft.agent_cfg.image_ref)
 
 
 def _extension(extension_id: str, dockerfile: bool = False) -> ExtensionMetadata:

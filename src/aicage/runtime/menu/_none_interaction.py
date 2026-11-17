@@ -105,9 +105,6 @@ class _NonInteractiveSelectionInteraction:
         del options
         return list(self._extensions)
 
-    def choose_image_ref(self, default_ref: str) -> str:
-        return default_ref
-
 
 def _always_confirm(*args: object) -> bool:
     del args

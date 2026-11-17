@@ -32,13 +32,11 @@ def handle_extension_selection(
         else []
     )
     if selected_extensions:
-        image_ref = selection_interaction.choose_image_ref(
-            default_extended_image_ref(
-                selection.agent,
-                selection.base,
-                selected_extensions,
-                selection.extensions,
-            )
+        image_ref = default_extended_image_ref(
+            selection.agent,
+            selection.base,
+            selected_extensions,
+            selection.extensions,
         )
         agent_cfg.extensions = list(selected_extensions)
         agent_cfg.image_ref = image_ref

@@ -49,7 +49,7 @@ def resolve_overview_selection(
 def _write_extended_image_ref(
     draft: RunConfigDraft, context: ConfigContext, agent_cfg: AgentConfig
 ) -> None:
-    image_ref = draft.agent_cfg.image_ref or default_extended_image_ref(
+    image_ref = default_extended_image_ref(
         draft.agent,
         agent_cfg.base or "",
         agent_cfg.extensions,
