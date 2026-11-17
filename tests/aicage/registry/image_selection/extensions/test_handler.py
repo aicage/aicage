@@ -61,13 +61,12 @@ class ExtensionHandlerTests(TestCase):
             ):
                 result = handle_extension_selection(
                     selection,
-                    _selection_interaction(
-                        ["extra"],
-                        f"{DEFAULT_EXTENDED_IMAGE_NAME}:custom",
-                    ),
+                    _selection_interaction(["extra"]),
                 )
 
-            self.assertEqual(f"{DEFAULT_EXTENDED_IMAGE_NAME}:custom", result.image_ref)
+            self.assertEqual(
+                f"{DEFAULT_EXTENDED_IMAGE_NAME}:codex-ubuntu-extra", result.image_ref
+            )
             self.assertEqual(["extra"], agent_cfg.extensions)
             write_mock.assert_called_once()
             save_project_mock.assert_not_called()
@@ -92,7 +91,6 @@ class ExtensionHandlerTests(TestCase):
             )
             interaction = _selection_interaction(
                 ["alpha", "zeta"],
-                f"{DEFAULT_EXTENDED_IMAGE_NAME}:custom",
             )
 
             handle_extension_selection(selection, interaction)
@@ -157,9 +155,7 @@ class ExtensionHandlerTests(TestCase):
 
 def _selection_interaction(
     extensions: list[str],
-    image_ref: str = "",
 ) -> mock.Mock:
     interaction = mock.Mock()
     interaction.choose_extensions.return_value = extensions
-    interaction.choose_image_ref.return_value = image_ref
     return interaction

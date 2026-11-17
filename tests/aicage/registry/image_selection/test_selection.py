@@ -5,7 +5,7 @@ from unittest import TestCase, mock
 from aicage.config.config_store import SettingsStore
 from aicage.config.context import ConfigContext
 from aicage.config.extensions.loader import ExtensionMetadata
-from aicage.config.image_refs import local_image_ref
+from aicage.config.image_refs import default_extended_image_ref, local_image_ref
 from aicage.config.project_config import AgentConfig, _ProjectConfig
 from aicage.constants import (
     DEFAULT_EXTENDED_IMAGE_NAME,
@@ -152,6 +152,34 @@ class ImageSelectionTests(TestCase):
         )
         self.assertEqual(selection.image_ref, agent_cfg.image_ref)
 
+    def test_select_agent_image_recalculates_extended_image_ref(self) -> None:
+        context = build_context(
+            mock.Mock(spec=SettingsStore), Path("/test-tmp/project"), bases=["ubuntu"]
+        )
+        context.extensions["regctl"] = ExtensionMetadata(
+            extension_id="regctl",
+            name="regctl",
+            description="Registry CLI",
+            shares=[],
+            directory=Path("/test-tmp/regctl"),
+            scripts_dir=Path("/test-tmp/regctl/scripts"),
+            dockerfile_path=None,
+        )
+        agent_cfg = AgentConfig(
+            base="ubuntu",
+            image_ref="aicage-extended:codex-ubuntu-regctl",
+            extensions=["regctl"],
+        )
+        context.project_cfg.agents["codex"] = agent_cfg
+
+        selection = select_agent_image("codex", context, mock.Mock())
+
+        expected_image_ref = default_extended_image_ref(
+            "codex", "ubuntu", ["regctl"], context.extensions
+        )
+        self.assertEqual(expected_image_ref, selection.image_ref)
+        self.assertEqual(expected_image_ref, agent_cfg.image_ref)
+
     def test_select_agent_image_raises_when_agent_missing(self) -> None:
         context = ConfigContext(
             store=mock.Mock(spec=SettingsStore),
@@ -168,5 +196,4 @@ def _selection_interaction() -> mock.Mock:
     interaction = mock.Mock()
     interaction.choose_base.return_value = "alpine"
     interaction.choose_extensions.return_value = []
-    interaction.choose_image_ref.return_value = ""
     return interaction
