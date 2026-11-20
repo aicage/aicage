@@ -7,6 +7,8 @@ from unittest import mock
 import pytest
 
 from aicage.config.agent.models import AgentMetadata
+from aicage.constants import VERSION_CHECK_IMAGE
+from aicage.docker.query import local_image_exists
 from aicage.registry.agent_build.agent_version.checker import AgentVersionChecker
 
 from ._helpers import require_integration
@@ -76,3 +78,4 @@ def test_version_check_falls_back_to_builder(
         )
 
         assert result
+        assert local_image_exists(VERSION_CHECK_IMAGE)
