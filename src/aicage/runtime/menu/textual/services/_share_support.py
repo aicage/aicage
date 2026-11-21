@@ -27,7 +27,7 @@ from aicage.runtime.mounts.shares import (
     resolve_share_specs,
 )
 
-from .._models import BuiltInShareValue
+from .._models import BuiltInShareSource, BuiltInShareValue
 from .._mount_display import extension_label, git_support_label
 
 
@@ -58,7 +58,7 @@ def built_in_share_values(
     if git_config and git_config.exists():
         built_in_shares.append(
             BuiltInShareValue(
-                source="git_support",
+                source=BuiltInShareSource.GIT_SUPPORT,
                 key=MOUNT_GITCONFIG_KEY,
                 label=git_support_label(MOUNT_GITCONFIG_KEY),
                 path=str(git_config),
@@ -74,7 +74,7 @@ def built_in_share_values(
     if git_root and git_root != project_path:
         built_in_shares.append(
             BuiltInShareValue(
-                source="git_support",
+                source=BuiltInShareSource.GIT_SUPPORT,
                 key=MOUNT_GITROOT_KEY,
                 label=git_support_label(MOUNT_GITROOT_KEY),
                 path=str(git_root),
@@ -96,7 +96,7 @@ def built_in_share_values(
         if ssh_dir.exists():
             built_in_shares.append(
                 BuiltInShareValue(
-                    source="git_support",
+                    source=BuiltInShareSource.GIT_SUPPORT,
                     key=MOUNT_SSH_KEY,
                     label=git_support_label(MOUNT_SSH_KEY),
                     path=str(ssh_dir),
@@ -114,7 +114,7 @@ def built_in_share_values(
         if gpg_home and gpg_home.exists():
             built_in_shares.append(
                 BuiltInShareValue(
-                    source="git_support",
+                    source=BuiltInShareSource.GIT_SUPPORT,
                     key=MOUNT_GNUPG_KEY,
                     label=git_support_label(MOUNT_GNUPG_KEY),
                     path=str(gpg_home),
@@ -154,7 +154,7 @@ def _extension_share_values(
         for spec, row_key in zip(specs, row_keys, strict=True):
             items.append(
                 BuiltInShareValue(
-                    source="extension",
+                    source=BuiltInShareSource.EXTENSION,
                     key=extension_id,
                     label=extension_label(extension_id),
                     path=_format_share_value(spec),

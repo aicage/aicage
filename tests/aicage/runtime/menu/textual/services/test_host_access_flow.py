@@ -3,6 +3,7 @@ from unittest import IsolatedAsyncioTestCase
 from aicage.cli_types import ParsedArgs
 from aicage.config.project_config import AgentConfig
 from aicage.runtime.menu.textual._models import (
+    BuiltInShareSource,
     BuiltInShareValue,
     CustomShareValue,
     DockerOptionValue,
@@ -21,7 +22,12 @@ class HostAccessFlowTests(IsolatedAsyncioTestCase):
         )
         built_in_shares = [
             BuiltInShareValue(
-                "git_support", "ssh", "SSH", "/test-tmp/.ssh", True, True
+                BuiltInShareSource.GIT_SUPPORT,
+                "ssh",
+                "SSH",
+                "/test-tmp/.ssh",
+                True,
+                True,
             ),
         ]
         docker_options = [

@@ -1,6 +1,7 @@
 from unittest import TestCase, mock
 
 from aicage.runtime.menu.textual._models import (
+    BuiltInShareSource,
     BuiltInShareValue,
     DockerOptionValue,
     HostAccessConfirmValues,
@@ -77,7 +78,7 @@ class BuiltInShareConfirmScreenTests(TestCase):
             [
                 _share(),
                 BuiltInShareValue(
-                    "git_support",
+                    BuiltInShareSource.GIT_SUPPORT,
                     "gitconfig",
                     "Git config",
                     "/home/user/.gitconfig",
@@ -116,10 +117,15 @@ class BuiltInShareConfirmScreenTests(TestCase):
                 ],
                 git_support_shares=[
                     BuiltInShareValue(
-                        "git_support", "ssh", "SSH", "/home/user/.ssh", None, True
+                        BuiltInShareSource.GIT_SUPPORT,
+                        "ssh",
+                        "SSH",
+                        "/home/user/.ssh",
+                        None,
+                        True,
                     ),
                     BuiltInShareValue(
-                        "git_support",
+                        BuiltInShareSource.GIT_SUPPORT,
                         "gitconfig",
                         "Git config",
                         "/home/user/.gitconfig",
@@ -129,7 +135,7 @@ class BuiltInShareConfirmScreenTests(TestCase):
                 ],
                 extension_shares=[
                     BuiltInShareValue(
-                        "extension",
+                        BuiltInShareSource.EXTENSION,
                         "gh",
                         "Extension gh",
                         "/home/user/.config/gh",
@@ -145,10 +151,15 @@ class BuiltInShareConfirmScreenTests(TestCase):
             [],
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/home/user/.ssh", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/home/user/.ssh",
+                    None,
+                    True,
                 ),
                 BuiltInShareValue(
-                    "git_support",
+                    BuiltInShareSource.GIT_SUPPORT,
                     "gitconfig",
                     "Git config",
                     "/home/user/.gitconfig",
@@ -158,7 +169,7 @@ class BuiltInShareConfirmScreenTests(TestCase):
             ],
             [
                 BuiltInShareValue(
-                    "extension",
+                    BuiltInShareSource.EXTENSION,
                     "gh",
                     "Extension gh",
                     "/home/user/.config/gh:ro",
@@ -180,7 +191,11 @@ class BuiltInShareConfirmScreenTests(TestCase):
     def test_compose_formats_pathless_git_support_setting(self) -> None:
         screen = host_access_confirm_screen.HostAccessConfirmScreen(
             [],
-            [BuiltInShareValue("git_support", "ssh", "SSH", None, None, True)],
+            [
+                BuiltInShareValue(
+                    BuiltInShareSource.GIT_SUPPORT, "ssh", "SSH", None, None, True
+                )
+            ],
             [],
         )
 
@@ -221,7 +236,7 @@ class BuiltInShareConfirmScreenTests(TestCase):
             [],
             [
                 BuiltInShareValue(
-                    "extension",
+                    BuiltInShareSource.EXTENSION,
                     "gcloud",
                     "Extension gcloud",
                     "/home/user/.config/gcloud",
@@ -230,7 +245,7 @@ class BuiltInShareConfirmScreenTests(TestCase):
                     "gcloud:/home/user/.config/gcloud",
                 ),
                 BuiltInShareValue(
-                    "extension",
+                    BuiltInShareSource.EXTENSION,
                     "gcloud",
                     "Extension gcloud",
                     "/home/user/.boto",
@@ -271,12 +286,19 @@ class BuiltInShareConfirmScreenTests(TestCase):
 
 
 def _share() -> BuiltInShareValue:
-    return BuiltInShareValue("git_support", "ssh", "SSH", "/home/user/.ssh", None, True)
+    return BuiltInShareValue(
+        BuiltInShareSource.GIT_SUPPORT, "ssh", "SSH", "/home/user/.ssh", None, True
+    )
 
 
 def _extension_share() -> BuiltInShareValue:
     return BuiltInShareValue(
-        "extension", "gh", "Extension gh", "/home/user/.config/gh", None, True
+        BuiltInShareSource.EXTENSION,
+        "gh",
+        "Extension gh",
+        "/home/user/.config/gh",
+        None,
+        True,
     )
 
 

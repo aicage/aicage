@@ -7,7 +7,11 @@ from textual.widgets import Button, SelectionList, Static
 
 from aicage.cli_types import ParsedArgs
 from aicage.config.project_config import AgentConfig
-from aicage.runtime.menu.textual._models import BuiltInShareValue, CustomShareValue
+from aicage.runtime.menu.textual._models import (
+    BuiltInShareSource,
+    BuiltInShareValue,
+    CustomShareValue,
+)
 from aicage.runtime.menu.textual._state import OverviewState
 from aicage.runtime.menu.textual.views.overview._selection_list import (
     _OverviewSelectionList,
@@ -131,7 +135,12 @@ class OverviewTests(TestCase):
             None,
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/test-tmp/.ssh",
+                    None,
+                    True,
                 )
             ],
             [],
@@ -174,7 +183,7 @@ class OverviewTests(TestCase):
                 None,
                 [
                     BuiltInShareValue(
-                        "extension",
+                        BuiltInShareSource.EXTENSION,
                         "gcloud",
                         "Extension gcloud",
                         "/test-tmp/gcloud",
@@ -183,7 +192,7 @@ class OverviewTests(TestCase):
                         "gcloud:/test-tmp/gcloud",
                     ),
                     BuiltInShareValue(
-                        "extension",
+                        BuiltInShareSource.EXTENSION,
                         "gcloud",
                         "Extension gcloud",
                         "/test-tmp/boto",
@@ -329,7 +338,12 @@ class OverviewTests(TestCase):
             shares_values.return_value = mock.Mock(
                 built_in_shares=[
                     BuiltInShareValue(
-                        "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                        BuiltInShareSource.GIT_SUPPORT,
+                        "ssh",
+                        "SSH",
+                        "/test-tmp/.ssh",
+                        None,
+                        True,
                     )
                 ]
             )
@@ -404,7 +418,12 @@ class OverviewTests(TestCase):
             shares_values.return_value = mock.Mock(
                 built_in_shares=[
                     BuiltInShareValue(
-                        "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                        BuiltInShareSource.GIT_SUPPORT,
+                        "ssh",
+                        "SSH",
+                        "/test-tmp/.ssh",
+                        None,
+                        True,
                     )
                 ]
             )
@@ -420,7 +439,12 @@ class OverviewTests(TestCase):
                 None,
                 [
                     BuiltInShareValue(
-                        "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                        BuiltInShareSource.GIT_SUPPORT,
+                        "ssh",
+                        "SSH",
+                        "/test-tmp/.ssh",
+                        None,
+                        True,
                     )
                 ],
                 [CustomShareValue("/test-tmp/logs")],
@@ -488,7 +512,12 @@ class OverviewTests(TestCase):
                 None,
                 [
                     BuiltInShareValue(
-                        "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, False
+                        BuiltInShareSource.GIT_SUPPORT,
+                        "ssh",
+                        "SSH",
+                        "/test-tmp/.ssh",
+                        None,
+                        False,
                     )
                 ],
                 [],

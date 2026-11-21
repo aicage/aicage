@@ -10,6 +10,7 @@ from aicage.runtime.menu._interaction_types import ConfigSelectionResult
 from aicage.runtime.menu.scope_change import ConfigScopeChange
 from aicage.runtime.menu.textual import _config_app
 from aicage.runtime.menu.textual._models import (
+    BuiltInShareSource,
     BuiltInShareValue,
     CustomShareValue,
     DockerOptionValue,
@@ -57,7 +58,7 @@ class ConfigAppTests(TestCase):
             ParsedArgs(False, "", "codex", [], False, [], menu="ui", git=True),
         )
         built_in_share = BuiltInShareValue(
-            "git_support",
+            BuiltInShareSource.GIT_SUPPORT,
             "gitconfig",
             "Git config",
             "/test-tmp/gitconfig",
@@ -135,7 +136,7 @@ class ConfigAppTests(TestCase):
         self.assertEqual(
             [
                 BuiltInShareValue(
-                    "git_support",
+                    BuiltInShareSource.GIT_SUPPORT,
                     "ssh",
                     "SSH directory (for Git remote access and signing)",
                     None,
@@ -155,7 +156,7 @@ class ConfigAppTests(TestCase):
         self.assertEqual(
             [
                 BuiltInShareValue(
-                    "git_support",
+                    BuiltInShareSource.GIT_SUPPORT,
                     "ssh",
                     "(Auto) SSH directory (for Git remote access and signing)",
                     None,
@@ -383,7 +384,12 @@ class ConfigAppTests(TestCase):
         self,
     ) -> None:
         built_in_share = BuiltInShareValue(
-            "git_support", "gitconfig", "Git config", "/test-tmp/gitconfig", None, True
+            BuiltInShareSource.GIT_SUPPORT,
+            "gitconfig",
+            "Git config",
+            "/test-tmp/gitconfig",
+            None,
+            True,
         )
         app = _build_app(built_in_shares=[built_in_share])
         overview = mock.Mock()
@@ -430,7 +436,7 @@ class ConfigAppTests(TestCase):
         app = _build_app(scope="global")
         app._draft.pending_git_mounts.add("gitconfig")
         auto_git_mount = BuiltInShareValue(
-            "git_support",
+            BuiltInShareSource.GIT_SUPPORT,
             "gitconfig",
             "(Auto) Git configuration (identity, aliases, and settings)",
             None,
@@ -499,7 +505,12 @@ class ConfigAppTests(TestCase):
         self,
     ) -> None:
         built_in_share = BuiltInShareValue(
-            "git_support", "gitconfig", "Git config", "/test-tmp/gitconfig", None, True
+            BuiltInShareSource.GIT_SUPPORT,
+            "gitconfig",
+            "Git config",
+            "/test-tmp/gitconfig",
+            None,
+            True,
         )
         app = _build_app(built_in_shares=[built_in_share])
         overview = mock.Mock()
@@ -521,7 +532,7 @@ class ConfigAppTests(TestCase):
         self,
     ) -> None:
         extension_share = BuiltInShareValue(
-            "extension",
+            BuiltInShareSource.EXTENSION,
             "gh",
             "Extension gh",
             str(Path.home().resolve() / ".config/gh"),

@@ -1,9 +1,15 @@
 from dataclasses import dataclass
+from enum import Enum
+
+
+class BuiltInShareSource(Enum):
+    GIT_SUPPORT = "git_support"
+    EXTENSION = "extension"
 
 
 @dataclass(frozen=True)
 class BuiltInShareValue:
-    source: str
+    source: BuiltInShareSource
     key: str
     label: str
     path: str | None

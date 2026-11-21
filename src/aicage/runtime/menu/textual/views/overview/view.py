@@ -15,7 +15,12 @@ from ..._ids import (
     SECTION_IDS,
     docker_selection_key,
 )
-from ..._models import BuiltInShareValue, CustomShareValue, DockerOptionValue
+from ..._models import (
+    BuiltInShareSource,
+    BuiltInShareValue,
+    CustomShareValue,
+    DockerOptionValue,
+)
 from ..._state import OverviewState
 from ...services.host_access import (
     built_in_group_selection_values,
@@ -202,7 +207,9 @@ class Overview(Container):
         built_in_shares = shares_values(draft, context).built_in_shares
         if self._scope in {"global", "tree"}:
             built_in_shares = [
-                item for item in built_in_shares if item.source != "git_support"
+                item
+                for item in built_in_shares
+                if item.source is not BuiltInShareSource.GIT_SUPPORT
             ]
         self._state.built_in_shares = merge_built_in_shares(
             built_in_shares,

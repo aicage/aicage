@@ -4,7 +4,7 @@ from unittest import TestCase, mock
 from aicage.cli_types import ParsedArgs
 from aicage.config.project_config import AgentConfig, _ProjectConfig
 from aicage.config.run_config_draft import _create_run_config_draft
-from aicage.runtime.menu.textual._models import BuiltInShareValue
+from aicage.runtime.menu.textual._models import BuiltInShareSource, BuiltInShareValue
 from aicage.runtime.menu.textual.services import _share_support
 
 from ..._test_support import _build_context, _build_draft
@@ -93,7 +93,7 @@ class ShareSupportTests(TestCase):
         self.assertEqual(
             [
                 BuiltInShareValue(
-                    "git_support",
+                    BuiltInShareSource.GIT_SUPPORT,
                     "gitconfig",
                     "Git config",
                     str(Path("/test-tmp/gitconfig")),
@@ -101,7 +101,12 @@ class ShareSupportTests(TestCase):
                     True,
                 ),
                 BuiltInShareValue(
-                    "git_support", "gitroot", "Git root", str(Path("/repo")), None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "gitroot",
+                    "Git root",
+                    str(Path("/repo")),
+                    None,
+                    True,
                 ),
             ],
             values,
@@ -121,7 +126,7 @@ class ShareSupportTests(TestCase):
         self.assertEqual(
             [
                 BuiltInShareValue(
-                    "extension",
+                    BuiltInShareSource.EXTENSION,
                     "gh",
                     "Extension gh",
                     str(Path.home().resolve() / ".config/gh"),
@@ -129,7 +134,7 @@ class ShareSupportTests(TestCase):
                     True,
                 )
             ],
-            [item for item in values if item.source == "extension"],
+            [item for item in values if item.source == BuiltInShareSource.EXTENSION],
         )
 
     def test_built_in_share_values_split_multiple_extension_shares_into_rows(
@@ -148,7 +153,7 @@ class ShareSupportTests(TestCase):
         self.assertEqual(
             [
                 BuiltInShareValue(
-                    "extension",
+                    BuiltInShareSource.EXTENSION,
                     "gcloud",
                     "Extension gcloud",
                     str(Path.home().resolve() / ".config/gcloud"),
@@ -157,7 +162,7 @@ class ShareSupportTests(TestCase):
                     f"gcloud:{Path.home().resolve() / '.config/gcloud'}",
                 ),
                 BuiltInShareValue(
-                    "extension",
+                    BuiltInShareSource.EXTENSION,
                     "gcloud",
                     "Extension gcloud",
                     str(Path.home().resolve() / ".boto"),
@@ -166,7 +171,7 @@ class ShareSupportTests(TestCase):
                     f"gcloud:{Path.home().resolve() / '.boto'}",
                 ),
             ],
-            [item for item in values if item.source == "extension"],
+            [item for item in values if item.source == BuiltInShareSource.EXTENSION],
         )
 
     def test_built_in_share_values_includes_ssh_mount_when_ssh_signing_enabled(
@@ -210,7 +215,12 @@ class ShareSupportTests(TestCase):
 
         self.assertIn(
             BuiltInShareValue(
-                "git_support", "ssh", "SSH", str(Path("/test-tmp/ssh")), None, True
+                BuiltInShareSource.GIT_SUPPORT,
+                "ssh",
+                "SSH",
+                str(Path("/test-tmp/ssh")),
+                None,
+                True,
             ),
             values,
         )
@@ -256,7 +266,7 @@ class ShareSupportTests(TestCase):
 
         self.assertIn(
             BuiltInShareValue(
-                "git_support",
+                BuiltInShareSource.GIT_SUPPORT,
                 "gnupg",
                 "GnuPG",
                 str(Path("/test-tmp/gnupg")),
