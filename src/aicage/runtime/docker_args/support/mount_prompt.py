@@ -1,4 +1,4 @@
-from collections.abc import Callable, Iterable
+from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
 
@@ -8,15 +8,20 @@ from aicage.runtime.mounts.shares import ShareSpec, resolve_share_specs
 
 from .git_support import _git_support_prompt_items
 
-MountSelectionPrompt = Callable[
-    [list[tuple[str, str]], list[tuple[str, str]]], list[str]
-]
+
+@dataclass(frozen=True)
+class _MountPromptItem:
+    key: str
+    description: str
 
 
 @dataclass(frozen=True)
-class _ExtensionMountPromptItem:
-    extension_id: str
-    description: str
+class _MountSelectionRequest:
+    git_items: list[_MountPromptItem]
+    extension_items: list[_MountPromptItem]
+
+
+MountSelectionPrompt = Callable[[_MountSelectionRequest], list[str]]
 
 
 @dataclass(frozen=True)
@@ -31,7 +36,12 @@ def resolve_mount_prompt_prefs(
     available_extensions: dict[str, ExtensionMetadata],
     select_mounts: MountSelectionPrompt,
 ) -> _MountPromptPrefs | None:
-    git_items = _git_support_prompt_items(project_path, agent_cfg.mounts)
+    git_items = [
+        _MountPromptItem(key, description)
+        for key, description in _git_support_prompt_items(
+            project_path, agent_cfg.mounts
+        )
+    ]
     extension_items = _extension_mount_prompt_items(
         project_path,
         agent_cfg.extensions,
@@ -41,24 +51,15 @@ def resolve_mount_prompt_prefs(
     if not git_items and not extension_items:
         return None
 
-    selected = set(
-        select_mounts(
-            list(git_items),
-            _format_extension_prompt_items(extension_items),
-        )
-    )
+    selected = set(select_mounts(_MountSelectionRequest(git_items, extension_items)))
     return _MountPromptPrefs(
-        git_mounts={key for key, _description in git_items if key in selected},
-        extension_mounts={
-            item.extension_id: item.extension_id in selected for item in extension_items
-        },
+        git_mounts={item.key for item in git_items if item.key in selected},
+        extension_mounts={item.key: item.key in selected for item in extension_items},
     )
 
 
-def _format_extension_prompt_items(
-    extension_items: Iterable[_ExtensionMountPromptItem],
-) -> list[tuple[str, str]]:
-    return [(item.extension_id, item.description) for item in extension_items]
+def select_all_mounts(request: _MountSelectionRequest) -> list[str]:
+    return [item.key for item in [*request.git_items, *request.extension_items]]
 
 
 def _extension_mount_prompt_items(
@@ -66,8 +67,8 @@ def _extension_mount_prompt_items(
     selected_extensions: list[str],
     extension_mounts: dict[str, bool],
     available_extensions: dict[str, ExtensionMetadata],
-) -> list[_ExtensionMountPromptItem]:
-    items: list[_ExtensionMountPromptItem] = []
+) -> list[_MountPromptItem]:
+    items: list[_MountPromptItem] = []
     for extension_id in selected_extensions:
         if extension_id in extension_mounts:
             continue
@@ -77,8 +78,8 @@ def _extension_mount_prompt_items(
         share_specs = resolve_share_specs(extension.shares, project_path)
         share_values = ", ".join(_format_share_value(spec) for spec in share_specs)
         items.append(
-            _ExtensionMountPromptItem(
-                extension_id=extension_id,
+            _MountPromptItem(
+                key=extension_id,
                 description=f"Extension {extension_id} shares: {share_values}",
             )
         )
@@ -91,7 +92,7 @@ def extension_mount_defaults(
     available_extensions: dict[str, ExtensionMetadata],
 ) -> dict[str, bool]:
     return {
-        item.extension_id: True
+        item.key: True
         for item in _extension_mount_prompt_items(
             project_path,
             agent_cfg.extensions,
