@@ -19,8 +19,6 @@ from pathlib import Path
 from time import monotonic, sleep
 from typing import Any
 
-from aicage.paths import container_project_path
-
 _API_KEY_ENV: str = "OPENROUTER_API_KEY"
 _ARTIFACT_DIR_ENV: str = "AICAGE_OPENROUTER_ARTIFACT_DIR"
 _PREFLIGHT_ONLY_OPTION: str = "--preflight-only"
@@ -344,6 +342,7 @@ def _acp_command(
             str(aicage_path),
             "--menu",
             "none",
+            *_acp_wsl_args(),
             *_marker_extension_args(True),
             *agent.aicage_args,
         ]
@@ -366,7 +365,7 @@ def _write_codex_launcher(temporary_root: Path) -> Path:
         launcher = temporary_root / "aicage-codex-openrouter.cmd"
         contents = (
             "@echo off\r\n"
-            "aicage --menu none --extension marker"
+            "aicage --menu none --acp-wsl --extension marker"
             " -e OPENROUTER_API_KEY -- codex %*\r\n"
         )
     else:
@@ -379,6 +378,10 @@ def _write_codex_launcher(temporary_root: Path) -> Path:
     launcher.write_text(contents, encoding="utf-8")
     launcher.chmod(0o755)
     return launcher
+
+
+def _acp_wsl_args() -> tuple[str, ...]:
+    return ("--acp-wsl",) if os.name == "nt" else ()
 
 
 def _install_codex_acp(home_dir: Path, environment: dict[str, str]) -> None:
@@ -643,11 +646,7 @@ def _prompt_agent(client: _AcpClient, workspace: Path) -> None:
     session = client.request(
         "session/new",
         {
-            # TODO: paths in ACP protocol must be translated for Windows
-            # See https://github.com/aicage/aicage/issues/124
-            "cwd": str(
-                container_project_path(workspace) if os.name == "nt" else workspace
-            ),
+            "cwd": str(workspace),
             "mcpServers": [],
         },
     )
