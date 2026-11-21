@@ -20,7 +20,7 @@ class ResolvedArgs:
     env: list[EnvVar] = field(default_factory=list)
 
 
-class Resolver(Protocol):
+class _Resolver(Protocol):
     def __call__(
         self,
         context: ConfigContext,

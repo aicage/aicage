@@ -6,7 +6,7 @@ from aicage.config.context import ConfigContext
 from aicage.config.project_config import AgentConfig
 from aicage.docker.runtime import get_active_docker_host
 from aicage.paths import HOST_DOCKER_SOCKET_PATH
-from aicage.runtime.docker_args.support.resolver_types import MountRequest, ResolvedArgs
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 from aicage.runtime.env_vars import DOCKER_HOST
 from aicage.runtime.run_args import EnvVar
 

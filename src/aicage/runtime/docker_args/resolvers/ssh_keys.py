@@ -3,11 +3,11 @@ from pathlib import Path
 from aicage.cli_types import ParsedArgs
 from aicage.config.context import ConfigContext
 from aicage.config.project_config import AgentConfig
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 from aicage.runtime.docker_args.support.git_support import (
     resolve_ssh_dir,
     uses_ssh_remotes,
 )
-from aicage.runtime.docker_args.support.resolver_types import MountRequest, ResolvedArgs
 from aicage.runtime.docker_args.support.signing import (
     is_commit_signing_enabled,
     resolve_signing_format,

@@ -1,7 +1,7 @@
 from aicage.cli_types import ParsedArgs
 from aicage.config.context import ConfigContext
 from aicage.runtime._agent_config import AgentConfig, resolve_agent_config
-from aicage.runtime.docker_args.support.resolver_types import MountRequest, ResolvedArgs
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 
 
 def resolve(

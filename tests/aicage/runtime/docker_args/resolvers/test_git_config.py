@@ -3,8 +3,8 @@ from pathlib import Path
 from unittest import TestCase, mock
 
 from aicage.config.project_config import AgentConfig
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 from aicage.runtime.docker_args.resolvers import git_config
-from aicage.runtime.docker_args.support.resolver_types import MountRequest, ResolvedArgs
 
 from ._fixtures import build_context, build_parsed
 

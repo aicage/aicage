@@ -7,7 +7,6 @@ from aicage.config.project_config import AgentConfig
 from aicage.docker.runtime import get_active_docker_host
 from aicage.errors import AicageError
 from aicage.paths import container_project_path
-from aicage.runtime.docker_args.support.resolver_types import ResolvedArgs, Resolver
 from aicage.runtime.env_vars import _AICAGE_WORKSPACE
 from aicage.runtime.run_args import EnvVar, MountSpec
 
@@ -23,6 +22,7 @@ from ..resolvers import (
     ssh_keys,
 )
 from ._mounts import map_mount_requests
+from .resolver_types import ResolvedArgs, _Resolver
 
 
 def resolve_docker_args(
@@ -47,7 +47,7 @@ def resolve_docker_args(
 
 
 def _resolve_provider(
-    provider: Resolver,
+    provider: _Resolver,
     context: ConfigContext,
     agent: str,
     parsed: ParsedArgs | None,
@@ -55,7 +55,7 @@ def _resolve_provider(
     return provider(context, agent, parsed)
 
 
-def _resolver_sequence() -> tuple[Resolver, ...]:
+def _resolver_sequence() -> tuple[_Resolver, ...]:
     return (
         project.resolve,
         agent_config.resolve,
