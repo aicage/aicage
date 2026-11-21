@@ -32,6 +32,10 @@ jobs:
     name: Integration Tests
     uses: ./.github/workflows/integration-test.yml
 
+  integration-test-windows:
+    name: Integration Tests (Windows)
+    uses: ./.github/workflows/integration-test-windows.yml
+
   integration-test-proxy:
     name: Integration Proxy Tests
     uses: ./.github/workflows/integration-test-proxy.yml
@@ -43,6 +47,7 @@ jobs:
       - super-linter
       - lint-and-test
       - integration-test
+      - integration-test-windows
       - integration-test-proxy
     runs-on: ubuntu-latest
     steps:
