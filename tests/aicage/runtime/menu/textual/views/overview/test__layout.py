@@ -1,6 +1,10 @@
 from unittest import TestCase
 
-from aicage.runtime.menu.textual._models import BuiltInShareValue, CustomShareValue
+from aicage.runtime.menu.textual._models import (
+    BuiltInShareSource,
+    BuiltInShareValue,
+    CustomShareValue,
+)
 from aicage.runtime.menu.textual.views.overview import _layout
 
 
@@ -9,7 +13,12 @@ class LayoutTests(TestCase):
         width = _layout.shell_width(
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/test-tmp/.ssh",
+                    None,
+                    True,
                 )
             ],
             [CustomShareValue("/test-tmp/logs")],

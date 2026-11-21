@@ -1,6 +1,10 @@
 from unittest import TestCase, mock
 
-from aicage.runtime.menu.textual._models import BuiltInShareValue, CustomShareValue
+from aicage.runtime.menu.textual._models import (
+    BuiltInShareSource,
+    BuiltInShareValue,
+    CustomShareValue,
+)
 from aicage.runtime.menu.textual._state import OverviewState
 from aicage.runtime.menu.textual.views.overview import _shares
 
@@ -41,7 +45,12 @@ class SharesOverviewTests(TestCase):
             None,
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/test-tmp/.ssh",
+                    None,
+                    True,
                 )
             ],
             [CustomShareValue("/test-tmp/logs")],
@@ -94,7 +103,12 @@ class SharesOverviewTests(TestCase):
             None,
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/test-tmp/.ssh",
+                    None,
+                    True,
                 )
             ],
             [CustomShareValue("/test-tmp/logs")],
@@ -114,12 +128,22 @@ class SharesOverviewTests(TestCase):
         values = _shares.merge_built_in_shares(
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, False
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/test-tmp/.ssh",
+                    None,
+                    False,
                 )
             ],
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/test-tmp/.ssh",
+                    None,
+                    True,
                 )
             ],
         )
@@ -127,7 +151,12 @@ class SharesOverviewTests(TestCase):
         self.assertEqual(
             [
                 BuiltInShareValue(
-                    "git_support", "ssh", "SSH", "/test-tmp/.ssh", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "ssh",
+                    "SSH",
+                    "/test-tmp/.ssh",
+                    None,
+                    True,
                 )
             ],
             values,
@@ -137,12 +166,22 @@ class SharesOverviewTests(TestCase):
         values = _shares.merge_built_in_shares(
             [
                 BuiltInShareValue(
-                    "git_support", "gnupg", "GnuPG", "/test-tmp/gnupg", True, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "gnupg",
+                    "GnuPG",
+                    "/test-tmp/gnupg",
+                    True,
+                    True,
                 )
             ],
             [
                 BuiltInShareValue(
-                    "git_support", "gnupg", "GnuPG", "/test-tmp/gnupg", None, True
+                    BuiltInShareSource.GIT_SUPPORT,
+                    "gnupg",
+                    "GnuPG",
+                    "/test-tmp/gnupg",
+                    None,
+                    True,
                 )
             ],
         )

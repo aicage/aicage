@@ -24,7 +24,12 @@ from aicage.runtime.menu._interaction_types import ConfigSelectionResult
 from aicage.runtime.menu.scope_change import ConfigScopeChange
 
 from ._ids import ROW_BASE, ROW_EXTENSIONS, ROW_EXTRAS
-from ._models import BuiltInShareValue, CustomShareValue, HostAccessConfirmValues
+from ._models import (
+    BuiltInShareSource,
+    BuiltInShareValue,
+    CustomShareValue,
+    HostAccessConfirmValues,
+)
 from ._mount_display import git_support_config_label
 from ._state import OverviewState
 from ._textual_app import TextualApp
@@ -306,7 +311,7 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
         pending_git_mounts = {
             item.key
             for item in current_built_in_shares
-            if item.source == "git_support"
+            if item.source is BuiltInShareSource.GIT_SUPPORT
             and item.enabled
             and item.persisted is not True
         }
@@ -317,7 +322,7 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
         self._draft.pending_extension_mounts = {
             item.key
             for item in current_built_in_shares
-            if item.source == "extension"
+            if item.source is BuiltInShareSource.EXTENSION
             and item.enabled
             and item.persisted is not True
         }
@@ -361,7 +366,8 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
             built_in_shares = [
                 (
                     replace(item, enabled=True)
-                    if item.source == "git_support" and item.key in detected_mounts
+                    if item.source is BuiltInShareSource.GIT_SUPPORT
+                    and item.key in detected_mounts
                     else item
                 )
                 for item in built_in_shares
@@ -396,17 +402,20 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
             (
                 replace(item, persisted=None)
                 if (
-                    item.source == "git_support"
+                    item.source is BuiltInShareSource.GIT_SUPPORT
                     and item.key in self._draft.pending_git_mounts
                 )
                 or (
-                    item.source == "extension"
+                    item.source is BuiltInShareSource.EXTENSION
                     and item.key in self._draft.pending_extension_mounts
                 )
                 else item
             )
             for item in shares_values(self._draft, self._config_context).built_in_shares
-            if not (self._uses_git_support_screen() and item.source == "git_support")
+            if not (
+                self._uses_git_support_screen()
+                and item.source is BuiltInShareSource.GIT_SUPPORT
+            )
         ]
 
     def _current_built_in_shares(self, overview: Overview) -> list[BuiltInShareValue]:
@@ -418,7 +427,7 @@ class ConfigApp(TextualApp[ConfigSelectionResult | ConfigScopeChange | None]):
     def _pending_git_support_shares(self) -> list[BuiltInShareValue]:
         return [
             BuiltInShareValue(
-                source="git_support",
+                source=BuiltInShareSource.GIT_SUPPORT,
                 key=key,
                 label=(
                     f"(Auto) {git_support_config_label(key)}"

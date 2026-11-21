@@ -2,6 +2,7 @@ from aicage.config.run_config_draft import RunConfigDraft
 
 from .._ids import built_in_identity, built_in_selection_key, docker_selection_key
 from .._models import (
+    BuiltInShareSource,
     BuiltInShareValue,
     CustomShareValue,
     DockerOptionValue,
@@ -48,7 +49,10 @@ def built_in_group_selection_values(
         ),
         None,
     )
-    if selected_item is None or selected_item.source != "extension":
+    if (
+        selected_item is None
+        or selected_item.source is not BuiltInShareSource.EXTENSION
+    ):
         return []
     group_identity = built_in_identity(selected_item.source, selected_item.key)
     return [
@@ -89,14 +93,14 @@ def _build_confirmation_request(
         git_support_shares=[
             item
             for item in built_in_shares
-            if item.source == "git_support"
+            if item.source is BuiltInShareSource.GIT_SUPPORT
             and item.enabled
             and item.persisted is not True
         ],
         extension_shares=[
             item
             for item in built_in_shares
-            if item.source == "extension"
+            if item.source is BuiltInShareSource.EXTENSION
             and item.enabled
             and item.persisted is not True
         ],
@@ -162,9 +166,9 @@ def apply_host_access(
     for item in built_in_shares:
         if item.inherited:
             continue
-        if item.source == "git_support":
+        if item.source is BuiltInShareSource.GIT_SUPPORT:
             setattr(draft.agent_cfg.mounts, item.key, item.enabled)
-        elif item.source == "extension":
+        elif item.source is BuiltInShareSource.EXTENSION:
             draft.agent_cfg.extension_mounts[item.key] = item.enabled
     for option in docker_options:
         if option.inherited:
