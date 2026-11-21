@@ -16,6 +16,17 @@ _MODULE = "aicage.runtime.docker_args.support.mount_prompt"
 
 
 class MountPromptTests(TestCase):
+    def test_select_all_mounts_returns_all_group_keys(self) -> None:
+        request = mount_prompt_module._MountSelectionRequest(
+            git_items=[mount_prompt_module._MountPromptItem("git", "Git")],
+            extension_items=[mount_prompt_module._MountPromptItem("gh", "GitHub CLI")],
+        )
+
+        self.assertEqual(
+            ["git", "gh"],
+            mount_prompt_module.select_all_mounts(request),
+        )
+
     def test_resolve_mount_prompt_prefs_returns_relevant_git_prefs(self) -> None:
         agent_cfg = AgentConfig(mounts=_AgentMounts())
         project_path = Path("/repo")
@@ -32,7 +43,7 @@ class MountPromptTests(TestCase):
                 project_path,
                 agent_cfg,
                 {},
-                lambda *_args: [
+                lambda _request: [
                     MOUNT_GITCONFIG_KEY,
                     MOUNT_GITROOT_KEY,
                     MOUNT_GNUPG_KEY,
@@ -91,11 +102,10 @@ class MountPromptTests(TestCase):
                 )
 
         assert prefs is not None
-        git_prompt_items = select_mounts.call_args.args[0]
-        extension_prompt_items = select_mounts.call_args.args[1]
-        self.assertEqual(MOUNT_GITCONFIG_KEY, git_prompt_items[0][0])
-        self.assertEqual("gh", extension_prompt_items[0][0])
-        self.assertIn("Extension gh shares:", extension_prompt_items[0][1])
+        request = select_mounts.call_args.args[0]
+        self.assertEqual(MOUNT_GITCONFIG_KEY, request.git_items[0].key)
+        self.assertEqual("gh", request.extension_items[0].key)
+        self.assertIn("Extension gh shares:", request.extension_items[0].description)
         self.assertEqual({MOUNT_GITCONFIG_KEY}, prefs.git_mounts)
         self.assertEqual({"gh": True}, prefs.extension_mounts)
 
@@ -115,7 +125,7 @@ class MountPromptTests(TestCase):
 
         with mock.patch(f"{_MODULE}._git_support_prompt_items", return_value=[]):
             prefs = mount_prompt_module.resolve_mount_prompt_prefs(
-                Path("/repo"), agent_cfg, {"gh": extension}, lambda *_args: []
+                Path("/repo"), agent_cfg, {"gh": extension}, lambda _request: []
             )
 
         assert prefs is not None
@@ -171,12 +181,12 @@ class MountPromptTests(TestCase):
         assert prefs is not None
         self.assertEqual(
             [
-                (
+                mount_prompt_module._MountPromptItem(
                     "sample",
                     f"Extension sample shares: {Path.home().resolve() / '.sample'}",
                 )
             ],
-            select_mounts.call_args.args[1],
+            select_mounts.call_args.args[0].extension_items,
         )
         self.assertEqual({"sample": True}, prefs.extension_mounts)
 

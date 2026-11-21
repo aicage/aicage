@@ -15,6 +15,7 @@ from aicage.runtime.docker_args.mount_preferences import (
     apply_mount_preferences,
     disable_git_mounts,
 )
+from aicage.runtime.docker_args.support.mount_prompt import select_all_mounts
 from aicage.runtime.menu._interaction_types import ConfigSelectionResult
 
 
@@ -59,7 +60,7 @@ class _NoneInteraction:
                 context,
                 agent,
                 draft.parsed,
-                _select_all_mounts,
+                select_all_mounts,
                 _always_confirm,
             )
         return ConfigSelectionResult(
@@ -109,10 +110,3 @@ class _NonInteractiveSelectionInteraction:
 def _always_confirm(*args: object) -> bool:
     del args
     return True
-
-
-def _select_all_mounts(
-    git_items: list[tuple[str, str]],
-    extension_items: list[tuple[str, str]],
-) -> list[str]:
-    return [item[0] for item in [*git_items, *extension_items]]
