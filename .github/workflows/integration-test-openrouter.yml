@@ -128,7 +128,7 @@ jobs:
 
       - name: Set up Docker WSL (Windows)
         if: contains(matrix.runner, 'windows')
-        uses: gh-workflow/setup-docker-wsl@3b1c78d38debf2965034c6230924ce186e4819ab  # v1.0.7
+        uses: gh-workflow/setup-docker-wsl@610199015d6c93e545996c041eac523b271abab1  # v1.0.10
         with:
           verify-docker-in-containers: "true"
 
