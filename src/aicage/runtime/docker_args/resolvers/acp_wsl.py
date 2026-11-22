@@ -1,6 +1,6 @@
 from aicage.cli_types import ParsedArgs
 from aicage.config.context import ConfigContext
-from aicage.runtime.docker_args.support.resolver_types import ResolvedArgs
+from aicage.runtime.docker_args.resolve.resolver_types import ResolvedArgs
 from aicage.runtime.env_vars import _AICAGE_ACP_WSL
 from aicage.runtime.run_args import EnvVar
 

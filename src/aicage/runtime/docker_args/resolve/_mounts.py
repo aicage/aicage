@@ -1,8 +1,9 @@
 from pathlib import Path, PurePosixPath
 
 from aicage.paths import container_project_path
-from aicage.runtime.docker_args.support.resolver_types import MountRequest
 from aicage.runtime.run_args import MountSpec
+
+from .resolver_types import MountRequest
 
 
 def map_mount_requests(requests: list[MountRequest]) -> list[MountSpec]:

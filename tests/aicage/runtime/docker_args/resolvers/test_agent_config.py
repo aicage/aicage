@@ -6,8 +6,8 @@ from aicage.config.agent.models import AgentMetadata
 from aicage.config.context import ConfigContext
 from aicage.config.project_config import _ProjectConfig
 from aicage.runtime._agent_config import AgentConfig as RuntimeAgentConfig
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 from aicage.runtime.docker_args.resolvers import agent_config
-from aicage.runtime.docker_args.support.resolver_types import MountRequest, ResolvedArgs
 
 
 class AgentConfigResolverTests(TestCase):

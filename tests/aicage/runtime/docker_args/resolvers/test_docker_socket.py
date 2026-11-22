@@ -5,8 +5,8 @@ from aicage.cli_types import ParsedArgs
 from aicage.config.context import ConfigContext
 from aicage.config.project_config import AgentConfig, _AgentMounts, _ProjectConfig
 from aicage.paths import HOST_DOCKER_SOCKET_PATH
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest
 from aicage.runtime.docker_args.resolvers.docker_socket import resolve
-from aicage.runtime.docker_args.support.resolver_types import MountRequest
 from aicage.runtime.env_vars import DOCKER_HOST
 
 _MODULE = "aicage.runtime.docker_args.resolvers.docker_socket"

@@ -2,7 +2,7 @@ from pathlib import Path
 
 from aicage.cli_types import ParsedArgs
 from aicage.config.context import ConfigContext
-from aicage.runtime.docker_args.support.resolver_types import MountRequest, ResolvedArgs
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 
 
 def resolve(

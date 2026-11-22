@@ -6,8 +6,8 @@ from aicage.cli_types import ParsedArgs
 from aicage.config.context import ConfigContext
 from aicage.config.extensions.loader import ExtensionMetadata
 from aicage.config.project_config import AgentConfig, _ProjectConfig
+from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 from aicage.runtime.docker_args.resolvers import shares
-from aicage.runtime.docker_args.support.resolver_types import MountRequest, ResolvedArgs
 
 
 class ShareResolverTests(TestCase):
