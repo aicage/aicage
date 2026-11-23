@@ -1,12 +1,12 @@
 from pathlib import Path, PurePosixPath
 
 from aicage.paths import container_project_path
-from aicage.runtime.run_args import MountSpec
+from aicage.runtime.run_args import BindMountSpec
 
 from .resolver_types import MountRequest
 
 
-def map_mount_requests(requests: list[MountRequest]) -> list[MountSpec]:
+def map_mount_requests(requests: list[MountRequest]) -> list[BindMountSpec]:
     deduped_requests = _dedupe_exact_mount_requests(requests)
     # Process shallower paths first so parents are seen before children.
     # That makes nested deduplication one-directional.
@@ -45,13 +45,13 @@ def _dedupe_nested_mount_requests(requests: list[MountRequest]) -> list[MountReq
     return selected_requests
 
 
-def _build_mount_specs(requests: list[MountRequest]) -> list[MountSpec]:
-    mounts: list[MountSpec] = []
+def _build_mount_specs(requests: list[MountRequest]) -> list[BindMountSpec]:
+    mounts: list[BindMountSpec] = []
     for request in requests:
         host_path = _host_path(request)
         container_path = request.container_path or container_project_path(host_path)
         mounts.append(
-            MountSpec(
+            BindMountSpec(
                 host_path=host_path,
                 container_path=container_path,
                 read_only=request.read_only,
