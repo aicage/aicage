@@ -7,6 +7,20 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.7.1] - 2026-11-23
+
+### Fixed
+
+- Non-interactive runs (`--menu none`) now honor shares and extensions inherited from global and directory-tree
+  configuration scopes.
+- Extended image references are now recalculated from the selected agent, base, and extensions instead of reusing a
+  saved reference, so configuration changes select the matching image.
+
+### Quality
+
+- Expanded automated Windows integration and OpenRouter ACP coverage, and refreshed CI actions and development
+  dependencies.
+
 ## [1.7.0] - 2026-11-04
 
 ### Added
