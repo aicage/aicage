@@ -65,7 +65,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532  # v4.1.3
+        uses: sigstore/cosign-installer@881c63bd87e38389154debd8331404ce7ca8a3ab  # v4.1.4
 
       - name: Syncing metadata and agents with sub-project 'aicage-image'
         run: scripts/sync-with-aicage-image-projects.sh
@@ -122,13 +122,13 @@ jobs:
 
       - name: Set up Docker Desktop (macOS)
         if: contains(matrix.runner, 'macos')
-        uses: gh-workflow/setup-docker-desktop-macos@275ff92cc293a098478cb1220bd59c0579d7320f  # 0.0.15
+        uses: gh-workflow/setup-docker-desktop-macos@3bb829989c3168faf1beb86eff89bb047fa9889c  # 0.0.16
         with:
           print_diagnostics: true
 
       - name: Set up Docker WSL (Windows)
         if: contains(matrix.runner, 'windows')
-        uses: gh-workflow/setup-docker-wsl@610199015d6c93e545996c041eac523b271abab1  # v1.0.10
+        uses: gh-workflow/setup-docker-wsl@0e4494cf7920ef10a540fc39a9f0bd6dc199e43e  # v1.0.11
         with:
           verify-docker-in-containers: "true"
 

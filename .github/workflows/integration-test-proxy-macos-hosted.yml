@@ -28,7 +28,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532  # v4.1.3
+        uses: sigstore/cosign-installer@881c63bd87e38389154debd8331404ce7ca8a3ab  # v4.1.4
 
       - name: Syncing metadata and agents with sub-project 'aicage-image'
         run: |
@@ -66,7 +66,7 @@ jobs:
           scripts/validate-config-with-schemas.sh
 
       - name: Set up Docker Desktop
-        uses: gh-workflow/setup-docker-desktop-macos@275ff92cc293a098478cb1220bd59c0579d7320f  # 0.0.15
+        uses: gh-workflow/setup-docker-desktop-macos@3bb829989c3168faf1beb86eff89bb047fa9889c  # 0.0.16
         with:
           print_diagnostics: false
 
