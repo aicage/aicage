@@ -6,3 +6,7 @@ agent_full_name: Kiro CLI
 agent_homepage: https://kiro.dev/cli/
 # Build locally because the license does not allow redistributing prebuilt images.
 build_local: true
+# Kiro's Alpine installation (https://learn.arm.com/install-guides/kiro-cli/)
+# is broken: the musl installer requires glibc >= 2.26.
+base_distro_exclude:
+  - Alpine
