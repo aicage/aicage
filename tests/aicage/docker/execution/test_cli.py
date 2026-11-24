@@ -2,7 +2,11 @@ import subprocess
 from unittest import TestCase, mock
 
 from aicage.docker.errors import DockerError
-from aicage.docker.execution.cli import run_docker_command, run_docker_command_capture
+from aicage.docker.execution.cli import (
+    docker_cli_environment,
+    run_docker_command,
+    run_docker_command_capture,
+)
 
 
 class DockerCliTests(TestCase):
@@ -15,6 +19,7 @@ class DockerCliTests(TestCase):
         process_context.__enter__ = mock.Mock(return_value=process)
         process_context.__exit__ = mock.Mock(return_value=None)
         with (
+            mock.patch.dict("aicage.docker.execution.cli.os.environ", {}, clear=True),
             mock.patch(
                 "aicage.docker.execution.cli.subprocess.Popen",
                 return_value=process_context,
@@ -23,9 +28,25 @@ class DockerCliTests(TestCase):
         ):
             result = run_docker_command(["docker", "run"], check=True)
 
-        run_mock.assert_called_once_with(["docker", "run"], stdout=None, stderr=None)
+        run_mock.assert_called_once_with(
+            ["docker", "run"],
+            stdout=None,
+            stderr=None,
+            env={"DOCKER_CLI_HINTS": "false"},
+        )
         register_mock.assert_called_once_with(process)
         assert result.returncode == 0
+
+    @staticmethod
+    def test_docker_cli_environment_disables_hints() -> None:
+        with mock.patch.dict(
+            "aicage.docker.execution.cli.os.environ",
+            {"INHERITED": "value"},
+            clear=True,
+        ):
+            environment = docker_cli_environment()
+
+        assert environment == {"INHERITED": "value", "DOCKER_CLI_HINTS": "false"}
 
     @staticmethod
     def test_run_docker_command_raises_clean_error_on_missing_docker() -> None:
@@ -66,6 +87,7 @@ class DockerCliTests(TestCase):
         process_context.__enter__ = mock.Mock(return_value=process)
         process_context.__exit__ = mock.Mock(return_value=None)
         with (
+            mock.patch.dict("aicage.docker.execution.cli.os.environ", {}, clear=True),
             mock.patch(
                 "aicage.docker.execution.cli.subprocess.Popen",
                 return_value=process_context,
@@ -81,6 +103,7 @@ class DockerCliTests(TestCase):
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=True,
+            env={"DOCKER_CLI_HINTS": "false"},
         )
         register_mock.assert_called_once_with(process)
         assert result.stdout == "ok"

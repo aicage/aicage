@@ -141,6 +141,10 @@ class RunCommandTests(TestCase):
         command = run_mock.call_args.args[0]
         self.assertIn("-e", command)
         self.assertIn("HTTPS_PROXY=http://proxy-https:8080", command)
+        self.assertEqual(
+            {"HTTPS_PROXY": "http://proxy-https:8080", "DOCKER_CLI_HINTS": "false"},
+            run_mock.call_args.kwargs["env"],
+        )
 
     def test_assemble_includes_env_and_mounts(self) -> None:
         with mock.patch(

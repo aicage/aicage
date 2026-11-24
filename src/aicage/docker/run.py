@@ -58,6 +58,7 @@ def run_builder_version_check(
             capture_output=True,
             text=True,
             timeout=BUILDER_VERSION_CHECK_TIMEOUT_SECONDS,
+            env=_docker_cli.docker_cli_environment(),
         )
         return subprocess.CompletedProcess(
             command,
