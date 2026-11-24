@@ -1,28 +1,19 @@
-from pathlib import Path, PurePosixPath
+from aicage.runtime.run_args import BindMountSpec
 
 
-def append_mount(
-    cmd: list[str],
-    host_path: Path,
-    container_path: PurePosixPath,
-    *,
-    read_only: bool,
-) -> None:
-    mount_value = _format_mount_value(host_path, container_path, read_only=read_only)
-    cmd.extend(["--mount", mount_value])
+def mount_args(mounts: list[BindMountSpec]) -> list[str]:
+    args: list[str] = []
+    for mount in mounts:
+        args.extend(_bind_mount_args(mount))
+    return args
 
 
-def _format_mount_value(
-    host_path: Path,
-    container_path: PurePosixPath,
-    *,
-    read_only: bool,
-) -> str:
+def _bind_mount_args(mount: BindMountSpec) -> list[str]:
     parts = [
         "type=bind",
-        f"src={host_path.as_posix()}",
-        f"dst={container_path.as_posix()}",
+        f"src={mount.host_path.as_posix()}",
+        f"dst={mount.container_path.as_posix()}",
     ]
-    if read_only:
+    if mount.read_only:
         parts.append("readonly")
-    return ",".join(parts)
+    return ["--mount", ",".join(parts)]

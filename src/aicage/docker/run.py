@@ -7,7 +7,7 @@ from aicage._proxy import proxy_run_env_args_from_host
 from aicage.constants import BUILDER_VERSION_CHECK_TIMEOUT_SECONDS
 from aicage.docker._env import resolve_user_ids
 from aicage.docker.execution import cli as _docker_cli
-from aicage.docker.execution.mounts import append_mount
+from aicage.docker.execution.mounts import mount_args
 from aicage.docker.query import cleanup_old_digest, get_local_repo_digest_for_repo
 from aicage.docker.refs import repository_from_image_ref
 from aicage.runtime.run_args import DockerRunArgs
@@ -79,10 +79,7 @@ def _assemble_docker_run(args: DockerRunArgs) -> list[str]:
     cmd.extend(resolve_user_ids())
     for env in args.env:
         cmd.extend(["-e", f"{env.name}={env.value}"])
-    for mount in args.mounts:
-        append_mount(
-            cmd, mount.host_path, mount.container_path, read_only=mount.read_only
-        )
+    cmd.extend(mount_args(args.mounts))
 
     if args.merged_docker_args:
         cmd.extend(shlex.split(args.merged_docker_args))
