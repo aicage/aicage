@@ -1,4 +1,4 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-npm view opencode-ai version
+npm view @opencode/cli version

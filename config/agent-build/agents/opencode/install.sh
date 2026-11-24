@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-npm install -g opencode-ai
+npm install -g @opencode/cli
 
 install -d /usr/share/licenses/opencode
 curl \
