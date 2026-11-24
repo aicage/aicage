@@ -4,10 +4,6 @@ name: Integration Tests (Windows)
   workflow_call:
   workflow_dispatch:
 
-concurrency:
-  group: windows-${{ github.workflow_ref }}-${{ github.event.pull_request.head.ref || github.ref_name }}
-  cancel-in-progress: true
-
 permissions:
   contents: read
 
