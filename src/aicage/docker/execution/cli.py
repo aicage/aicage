@@ -1,3 +1,4 @@
+import os
 import subprocess  # nosec B404 -- subprocess is the intended wrapper for Docker CLI execution.
 from typing import Literal, TextIO, overload
 
@@ -17,6 +18,7 @@ def run_docker_command(
             command,
             stdout=stdout,
             stderr=stderr,
+            env=docker_cli_environment(),
         ) as process:
             register_process(process)
             process.wait()
@@ -34,6 +36,10 @@ def run_docker_command(
         raise DockerError(
             f"Docker command failed with exit code {exc.returncode}."
         ) from exc
+
+
+def docker_cli_environment() -> dict[str, str]:
+    return {**os.environ, "DOCKER_CLI_HINTS": "false"}
 
 
 @overload
@@ -66,6 +72,7 @@ def run_docker_command_capture(
             stdout=subprocess.PIPE,
             stderr=subprocess.PIPE,
             text=text,
+            env=docker_cli_environment(),
         ) as process:
             register_process(process)
             stdout, stderr = process.communicate()

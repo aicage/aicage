@@ -5,6 +5,7 @@ from typing import TextIO
 from aicage._execution_cleanup import register_process
 from aicage.config.run_config import RunConfig
 from aicage.docker.errors import DockerError
+from aicage.docker.execution.cli import docker_cli_environment
 from aicage.reporting import OperationReporter
 
 
@@ -28,6 +29,7 @@ def run_build_command(
             stderr=subprocess.STDOUT,
             text=True,
             encoding="utf-8",
+            env=docker_cli_environment(),
         ) as process:
             register_process(process)
             if process.stdout is None:
