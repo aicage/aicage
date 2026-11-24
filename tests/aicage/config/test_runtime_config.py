@@ -21,7 +21,7 @@ from aicage.registry.errors import RegistryError
 from aicage.registry.image_selection.models import ImageSelection
 from aicage.runtime.menu.interaction import create_runtime_interaction
 from aicage.runtime.menu.scope_change import ConfigScopeChange
-from aicage.runtime.run_args import EnvVar, MountSpec
+from aicage.runtime.run_args import BindMountSpec, EnvVar
 
 
 class RuntimeConfigTests(TestCase):
@@ -286,7 +286,7 @@ class RuntimeConfigTests(TestCase):
                 return SettingsStore()
 
             mounts = [
-                MountSpec(
+                BindMountSpec(
                     host_path=Path("/test-tmp/host"),
                     container_path=PurePosixPath("/test-tmp/container"),
                 )

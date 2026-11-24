@@ -3,7 +3,7 @@ from pathlib import Path
 
 from aicage.config.context import ConfigContext
 from aicage.registry.image_selection.models import ImageSelection
-from aicage.runtime.run_args import EnvVar, MountSpec
+from aicage.runtime.run_args import BindMountSpec, EnvVar
 
 
 @dataclass(frozen=True)
@@ -13,5 +13,5 @@ class RunConfig:
     context: ConfigContext
     selection: ImageSelection
     project_docker_args: str
-    mounts: list[MountSpec]
+    mounts: list[BindMountSpec]
     env: list[EnvVar]

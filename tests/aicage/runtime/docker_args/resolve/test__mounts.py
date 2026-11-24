@@ -5,7 +5,7 @@ from unittest import TestCase
 from aicage.paths import container_project_path
 from aicage.runtime.docker_args.resolve._mounts import map_mount_requests
 from aicage.runtime.docker_args.resolve.resolver_types import MountRequest
-from aicage.runtime.run_args import MountSpec
+from aicage.runtime.run_args import BindMountSpec
 
 
 class MountsTests(TestCase):
@@ -18,7 +18,7 @@ class MountsTests(TestCase):
         )
 
         self.assertEqual(
-            [MountSpec(host_path=host_path, container_path=container_path)], mounts
+            [BindMountSpec(host_path=host_path, container_path=container_path)], mounts
         )
 
     def test_map_mount_requests_deduplicates_nested_paths(self) -> None:
@@ -38,7 +38,7 @@ class MountsTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=parent_path,
                     container_path=container_project_path(parent_path),
                     read_only=False,
@@ -62,7 +62,7 @@ class MountsTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=project_path,
                     container_path=container_project_path(project_path),
                     read_only=False,
@@ -90,7 +90,7 @@ class MountsTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=parent_path,
                     container_path=container_project_path(parent_path),
                     read_only=False,
@@ -116,12 +116,12 @@ class MountsTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=parent_path,
                     container_path=container_project_path(parent_path),
                     read_only=False,
                 ),
-                MountSpec(
+                BindMountSpec(
                     host_path=child_path,
                     container_path=container_project_path(child_path),
                     read_only=True,
@@ -149,12 +149,12 @@ class MountsTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=parent_path,
                     container_path=container_project_path(parent_path),
                     read_only=True,
                 ),
-                MountSpec(
+                BindMountSpec(
                     host_path=child_path,
                     container_path=container_project_path(child_path),
                     read_only=False,

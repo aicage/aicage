@@ -12,7 +12,7 @@ from aicage.runtime.docker_args.resolve import resolver
 from aicage.runtime.docker_args.resolve._mounts import map_mount_requests
 from aicage.runtime.docker_args.resolve.resolver_types import MountRequest, ResolvedArgs
 from aicage.runtime.env_vars import _AICAGE_WORKSPACE
-from aicage.runtime.run_args import EnvVar, MountSpec
+from aicage.runtime.run_args import BindMountSpec, EnvVar
 
 _MODULE = "aicage.runtime.docker_args.resolve.resolver"
 
@@ -26,7 +26,7 @@ class ResolverTests(TestCase):
         ):
             resolver._validate_home_mount_safety(
                 [
-                    MountSpec(
+                    BindMountSpec(
                         host_path=pipe_path,
                         container_path=PurePosixPath("/var/run/docker.sock"),
                     )
@@ -80,15 +80,15 @@ class ResolverTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=docker_sock,
                     container_path=container_project_path(docker_sock),
                 ),
-                MountSpec(
+                BindMountSpec(
                     host_path=project_path,
                     container_path=container_project_path(project_path),
                 ),
-                MountSpec(
+                BindMountSpec(
                     host_path=git_config,
                     container_path=container_project_path(git_config),
                 ),
@@ -166,7 +166,7 @@ class ResolverTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=project_path,
                     container_path=container_project_path(project_path),
                 )
@@ -197,7 +197,7 @@ class ResolverTests(TestCase):
 
         self.assertEqual(
             [
-                MountSpec(
+                BindMountSpec(
                     host_path=parent_path,
                     container_path=container_project_path(parent_path),
                     read_only=False,

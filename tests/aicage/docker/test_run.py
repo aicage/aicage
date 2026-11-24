@@ -4,7 +4,7 @@ from pathlib import Path, PurePosixPath
 from unittest import TestCase, mock
 
 from aicage.docker import run
-from aicage.runtime.run_args import DockerRunArgs, EnvVar, MountSpec
+from aicage.runtime.run_args import BindMountSpec, DockerRunArgs, EnvVar
 
 
 class RunCommandTests(TestCase):
@@ -153,7 +153,7 @@ class RunCommandTests(TestCase):
                 agent_args=["--flag"],
                 env=[EnvVar(name="EXTRA", value="1")],
                 mounts=[
-                    MountSpec(
+                    BindMountSpec(
                         host_path=Path("/test-tmp/one"),
                         container_path=PurePosixPath("/opt/one"),
                         read_only=True,

@@ -5,14 +5,14 @@ from unittest import TestCase, mock
 from aicage.errors import AicageError
 from aicage.paths import container_project_path
 from aicage.runtime.docker_args.resolve import resolver
-from aicage.runtime.run_args import MountSpec
+from aicage.runtime.run_args import BindMountSpec
 
 
 class HomeGuardTests(TestCase):
     def test_validate_home_mount_safety_rejects_home_mount(self) -> None:
         home_path = Path("/test-tmp/home").resolve()
         mounts = [
-            MountSpec(
+            BindMountSpec(
                 host_path=home_path, container_path=container_project_path(home_path)
             ),
         ]
@@ -34,7 +34,7 @@ class HomeGuardTests(TestCase):
     def test_validate_home_mount_safety_rejects_parent_of_home_mount(self) -> None:
         home_path = Path("/test-tmp/home/user").resolve()
         mounts = [
-            MountSpec(
+            BindMountSpec(
                 host_path=home_path.parent,
                 container_path=container_project_path(home_path.parent),
             ),
@@ -58,7 +58,7 @@ class HomeGuardTests(TestCase):
     def test_validate_home_mount_safety_allows_non_home_mount() -> None:
         home_path = Path("/test-tmp/home").resolve()
         mounts = [
-            MountSpec(
+            BindMountSpec(
                 host_path=Path("/test-tmp/project"),
                 container_path=container_project_path(Path("/test-tmp/project")),
             ),
