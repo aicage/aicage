@@ -20,7 +20,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532  # v4.1.3
+        uses: sigstore/cosign-installer@881c63bd87e38389154debd8331404ce7ca8a3ab  # v4.1.4
 
       - name: Syncing metadata and agents with sub-project 'aicage-image'
         run: |
@@ -59,7 +59,7 @@ jobs:
           persist-credentials: false
 
       - name: Install Cosign
-        uses: sigstore/cosign-installer@756fe2d284c7292c4e9b62c8a28f1e5629c59532  # v4.1.3
+        uses: sigstore/cosign-installer@881c63bd87e38389154debd8331404ce7ca8a3ab  # v4.1.4
 
       - name: Syncing metadata and agents with sub-project 'aicage-image'
         shell: bash
@@ -82,7 +82,7 @@ jobs:
           python -m pip install -r requirements-dev.txt
 
       - name: Set up Skrog Docker WSL
-        uses: gh-workflow/setup-docker-wsl@610199015d6c93e545996c041eac523b271abab1  # v1.0.10
+        uses: gh-workflow/setup-docker-wsl@0e4494cf7920ef10a540fc39a9f0bd6dc199e43e  # v1.0.11
         with:
           verify-docker-in-containers: "true"
 
