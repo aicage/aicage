@@ -7,6 +7,17 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [1.8.0]
+
+### Added
+
+- Added SSH and GnuPG credential forwarding, so coding agents can use host credentials without seeing private-keys.
+
+### Changed
+
+- SSH and GnuPG credential forwarding are now configured independently from Git configuration and repository mounts.
+- Docker CLI hints are suppressed from `aicage` output.
+
 ## [1.7.1] - 2026-11-23
 
 ### Fixed
