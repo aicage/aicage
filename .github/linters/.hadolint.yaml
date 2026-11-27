@@ -1,5 +1,11 @@
 ignored:
-  - DL3008
-  - DL3009
-  - DL3059
+  # Last USER should not be root
   - DL3002
+  # Pin versions in apt get install. Instead of `apt-get install <package>` use `apt-get install <package>=<version>`
+  - DL3008
+  # Delete the apt lists (/var/lib/apt/lists) after installing something
+  - DL3009
+  # Multiple consecutive `RUN` instructions. Consider consolidation.
+  - DL3059
+  # Pin versions in apk add. Instead of `apk add <package>` use `apk add <package>=<version>`
+  - DL3018

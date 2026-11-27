@@ -6,3 +6,6 @@
 ^https://code\.kimi\.com/kimi-code/$
 # openai.com/brand rejects with 403 Forbidden
 ^https://openai.com/brand/$
+# github.com responds with 503 if requested several times in row
+^https://github.com/aaif-goose/goose/blob/main/documentation/static/img/logo.svg$
+^https://github.com/QwenLM/qwen-code/blob/main/packages/desktop/bootstrap/qwen-code-logo.svg$

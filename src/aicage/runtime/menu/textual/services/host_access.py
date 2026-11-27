@@ -49,10 +49,7 @@ def built_in_group_selection_values(
         ),
         None,
     )
-    if (
-        selected_item is None
-        or selected_item.source is not BuiltInShareSource.EXTENSION
-    ):
+    if selected_item is None or selected_item.source != BuiltInShareSource.EXTENSION:
         return []
     group_identity = built_in_identity(selected_item.source, selected_item.key)
     return [
@@ -90,17 +87,24 @@ def _build_confirmation_request(
                 and option.requires_confirmation
             )
         ],
-        git_support_shares=[
+        git_shares=[
             item
             for item in built_in_shares
-            if item.source is BuiltInShareSource.GIT_SUPPORT
+            if item.source == BuiltInShareSource.GIT_SUPPORT
+            and item.enabled
+            and item.persisted is not True
+        ],
+        credential_shares=[
+            item
+            for item in built_in_shares
+            if item.source == BuiltInShareSource.CREDENTIALS
             and item.enabled
             and item.persisted is not True
         ],
         extension_shares=[
             item
             for item in built_in_shares
-            if item.source is BuiltInShareSource.EXTENSION
+            if item.source == BuiltInShareSource.EXTENSION
             and item.enabled
             and item.persisted is not True
         ],
@@ -114,7 +118,11 @@ def _merge_confirmed_host_access(
 ) -> tuple[list[BuiltInShareValue], list[DockerOptionValue]]:
     confirmed_by_key = {
         built_in_identity(item.source, item.key): item.enabled
-        for item in [*confirmed.git_support_shares, *confirmed.extension_shares]
+        for item in [
+            *confirmed.git_shares,
+            *confirmed.credential_shares,
+            *confirmed.extension_shares,
+        ]
     }
     merged_shares = [
         (
@@ -166,9 +174,12 @@ def apply_host_access(
     for item in built_in_shares:
         if item.inherited:
             continue
-        if item.source is BuiltInShareSource.GIT_SUPPORT:
+        if item.source in {
+            BuiltInShareSource.GIT_SUPPORT,
+            BuiltInShareSource.CREDENTIALS,
+        }:
             setattr(draft.agent_cfg.mounts, item.key, item.enabled)
-        elif item.source is BuiltInShareSource.EXTENSION:
+        elif item.source == BuiltInShareSource.EXTENSION:
             draft.agent_cfg.extension_mounts[item.key] = item.enabled
     for option in docker_options:
         if option.inherited:

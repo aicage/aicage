@@ -22,7 +22,7 @@ class HostAccessFlowTests(IsolatedAsyncioTestCase):
         )
         built_in_shares = [
             BuiltInShareValue(
-                BuiltInShareSource.GIT_SUPPORT,
+                BuiltInShareSource.CREDENTIALS,
                 "ssh",
                 "SSH",
                 "/test-tmp/.ssh",

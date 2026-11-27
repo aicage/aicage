@@ -7,11 +7,11 @@ from aicage.docker import runtime
 class DockerRuntimeTests(TestCase):
     def setUp(self) -> None:
         runtime.get_active_docker_host.cache_clear()
-        runtime._is_rootless_docker.cache_clear()
+        runtime.is_rootless_docker.cache_clear()
 
     def tearDown(self) -> None:
         runtime.get_active_docker_host.cache_clear()
-        runtime._is_rootless_docker.cache_clear()
+        runtime.is_rootless_docker.cache_clear()
 
     def test_get_active_docker_host_prefers_env(self) -> None:
         with mock.patch.dict(
@@ -62,7 +62,7 @@ class DockerRuntimeTests(TestCase):
         self.assertEqual("unix:///run/docker.sock", host.host)
         self.assertEqual(Path("/run/docker.sock"), host.socket_path)
 
-    def test__is_rootless_docker_detects_rootless_security_option(self) -> None:
+    def test_is_rootless_docker_detects_rootless_security_option(self) -> None:
         process = mock.Mock(stdout='["name=seccomp","name=rootless"]\n')
         with (
             mock.patch("aicage.docker.runtime.os.name", "posix"),
@@ -70,9 +70,9 @@ class DockerRuntimeTests(TestCase):
                 "aicage.docker.runtime.run_docker_command_capture", return_value=process
             ),
         ):
-            self.assertTrue(runtime._is_rootless_docker())
+            self.assertTrue(runtime.is_rootless_docker())
 
-    def test__is_rootless_docker_returns_false_when_not_rootless(self) -> None:
+    def test_is_rootless_docker_returns_false_when_not_rootless(self) -> None:
         process = mock.Mock(stdout='["name=seccomp"]\n')
         with (
             mock.patch("aicage.docker.runtime.os.name", "posix"),
@@ -80,4 +80,4 @@ class DockerRuntimeTests(TestCase):
                 "aicage.docker.runtime.run_docker_command_capture", return_value=process
             ),
         ):
-            self.assertFalse(runtime._is_rootless_docker())
+            self.assertFalse(runtime.is_rootless_docker())

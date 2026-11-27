@@ -12,7 +12,7 @@ from aicage.runtime.menu.textual.views import host_access_confirm_screen
 class BuiltInShareConfirmScreenTests(TestCase):
     def test_compose_builds_screen_widgets(self) -> None:
         screen = host_access_confirm_screen.HostAccessConfirmScreen(
-            [_docker_option()], [_share()], []
+            [_docker_option()], [], [], [_share()]
         )
 
         widgets = list(screen.compose())
@@ -30,7 +30,8 @@ class BuiltInShareConfirmScreenTests(TestCase):
                 return ok_button
             if selector in {
                 "#docker_confirm_list",
-                "#git_support_confirm_list",
+                "#git_confirm_list",
+                "#credential_confirm_list",
                 "#extension_confirm_list",
             }:
                 raise host_access_confirm_screen.NoMatches("not present")
@@ -46,12 +47,13 @@ class BuiltInShareConfirmScreenTests(TestCase):
     ) -> None:
         screen = host_access_confirm_screen.HostAccessConfirmScreen(
             [_docker_option()],
-            [_share()],
             [_extension_share()],
+            [_share()],
         )
         ok_button = mock.Mock()
         docker_selection_list = mock.Mock()
         git_support_selection_list = mock.Mock()
+        credential_selection_list = mock.Mock()
         extension_selection_list = mock.Mock()
 
         def query_one_side_effect(selector: str, _expected_type: object) -> mock.Mock:
@@ -59,8 +61,10 @@ class BuiltInShareConfirmScreenTests(TestCase):
                 return ok_button
             if selector == "#docker_confirm_list":
                 return docker_selection_list
-            if selector == "#git_support_confirm_list":
+            if selector == "#git_confirm_list":
                 return git_support_selection_list
+            if selector == "#credential_confirm_list":
+                return credential_selection_list
             if selector == "#extension_confirm_list":
                 return extension_selection_list
             self.fail(f"Unexpected selector: {selector}")
@@ -70,13 +74,13 @@ class BuiltInShareConfirmScreenTests(TestCase):
 
         self.assertEqual(None, docker_selection_list.highlighted)
         self.assertEqual(None, git_support_selection_list.highlighted)
+        self.assertEqual(None, credential_selection_list.highlighted)
         self.assertEqual(None, extension_selection_list.highlighted)
 
     def test_action_accept_dismisses_selected_host_access_values(self) -> None:
         screen = host_access_confirm_screen.HostAccessConfirmScreen(
             [_docker_option()],
             [
-                _share(),
                 BuiltInShareValue(
                     BuiltInShareSource.GIT_SUPPORT,
                     "gitconfig",
@@ -87,19 +91,24 @@ class BuiltInShareConfirmScreenTests(TestCase):
                 ),
             ],
             [_extension_share()],
+            [_share()],
         )
         docker_selection_list = mock.Mock()
         docker_selection_list.selected = ["docker"]
         git_support_selection_list = mock.Mock()
-        git_support_selection_list.selected = ["builtin:git_support:ssh"]
+        git_support_selection_list.selected = []
+        credential_selection_list = mock.Mock()
+        credential_selection_list.selected = ["builtin:credentials:ssh"]
         extension_selection_list = mock.Mock()
         extension_selection_list.selected = ["builtin:extension:gh"]
 
         def query_one_side_effect(selector: str, _expected_type: object) -> mock.Mock:
             if selector == "#docker_confirm_list":
                 return docker_selection_list
-            if selector == "#git_support_confirm_list":
+            if selector == "#git_confirm_list":
                 return git_support_selection_list
+            if selector == "#credential_confirm_list":
+                return credential_selection_list
             if selector == "#extension_confirm_list":
                 return extension_selection_list
             self.fail(f"Unexpected selector: {selector}")
@@ -115,15 +124,7 @@ class BuiltInShareConfirmScreenTests(TestCase):
                 docker_options=[
                     DockerOptionValue("docker", "Docker socket", None, None, True),
                 ],
-                git_support_shares=[
-                    BuiltInShareValue(
-                        BuiltInShareSource.GIT_SUPPORT,
-                        "ssh",
-                        "SSH",
-                        "/home/user/.ssh",
-                        None,
-                        True,
-                    ),
+                git_shares=[
                     BuiltInShareValue(
                         BuiltInShareSource.GIT_SUPPORT,
                         "gitconfig",
@@ -132,6 +133,16 @@ class BuiltInShareConfirmScreenTests(TestCase):
                         None,
                         False,
                     ),
+                ],
+                credential_shares=[
+                    BuiltInShareValue(
+                        BuiltInShareSource.CREDENTIALS,
+                        "ssh",
+                        "SSH",
+                        "/home/user/.ssh",
+                        None,
+                        True,
+                    )
                 ],
                 extension_shares=[
                     BuiltInShareValue(
@@ -152,14 +163,6 @@ class BuiltInShareConfirmScreenTests(TestCase):
             [
                 BuiltInShareValue(
                     BuiltInShareSource.GIT_SUPPORT,
-                    "ssh",
-                    "SSH",
-                    "/home/user/.ssh",
-                    None,
-                    True,
-                ),
-                BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
                     "gitconfig",
                     "Git config",
                     "/home/user/.gitconfig",
@@ -177,13 +180,24 @@ class BuiltInShareConfirmScreenTests(TestCase):
                     True,
                 )
             ],
+            [
+                BuiltInShareValue(
+                    BuiltInShareSource.CREDENTIALS,
+                    "ssh",
+                    "SSH",
+                    "/home/user/.ssh",
+                    None,
+                    True,
+                )
+            ],
         )
 
-        git_rows = list(screen._git_support_selection_list()._options)
+        git_rows = list(screen._git_selection_list()._options)
         extension_rows = list(screen._extension_selection_list()._options)
 
-        self.assertEqual("SSH       : /home/user/.ssh", git_rows[0].prompt)
-        self.assertEqual("Git config: /home/user/.gitconfig", git_rows[1].prompt)
+        credential_rows = list(screen._credential_selection_list()._options)
+        self.assertEqual("Git config: /home/user/.gitconfig", git_rows[0].prompt)
+        self.assertEqual("SSH: /home/user/.ssh", credential_rows[0].prompt)
         self.assertEqual(
             "Extension gh: Read-only: /home/user/.config/gh", extension_rows[0].prompt
         )
@@ -191,26 +205,27 @@ class BuiltInShareConfirmScreenTests(TestCase):
     def test_compose_formats_pathless_git_support_setting(self) -> None:
         screen = host_access_confirm_screen.HostAccessConfirmScreen(
             [],
+            [],
+            [],
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT, "ssh", "SSH", None, None, True
+                    BuiltInShareSource.CREDENTIALS, "ssh", "SSH", None, None, True
                 )
             ],
-            [],
         )
 
-        git_rows = list(screen._git_support_selection_list()._options)
+        git_rows = list(screen._credential_selection_list()._options)
 
         self.assertEqual("SSH", git_rows[0].prompt)
 
-    def test__git_support_hint_describes_global_scope(self) -> None:
+    def test__git_hint_describes_global_scope(self) -> None:
         screen = host_access_confirm_screen.HostAccessConfirmScreen(
             [], [], [], "global"
         )
 
-        hint = screen._git_support_hint()
+        hint = screen._git_hint()
 
-        self.assertEqual("Persists Git support settings for every project.", hint)
+        self.assertEqual("Persists Git settings for every project.", hint)
 
     def test_docker_selection_list_includes_docker_option(self) -> None:
         screen = host_access_confirm_screen.HostAccessConfirmScreen(
@@ -287,7 +302,7 @@ class BuiltInShareConfirmScreenTests(TestCase):
 
 def _share() -> BuiltInShareValue:
     return BuiltInShareValue(
-        BuiltInShareSource.GIT_SUPPORT, "ssh", "SSH", "/home/user/.ssh", None, True
+        BuiltInShareSource.CREDENTIALS, "ssh", "SSH", "/home/user/.ssh", None, True
     )
 
 

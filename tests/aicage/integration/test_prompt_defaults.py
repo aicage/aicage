@@ -48,6 +48,27 @@ def test_none_uses_default_mount_selection_without_saving(
     assert agent_cfg.mounts.gitconfig is None
     assert agent_cfg.mounts.gitroot is None
 
+    # An explicit CLI preference overrides saved mount settings for this run.
+    _save_project_config(
+        project_dir,
+        mounts=_AgentMounts(gitconfig=False, gitroot=False),
+    )
+    exit_code, output = run_cli_pty(
+        ["--menu", "none", "--dry-run", "--git", "codex"],
+        env=env,
+        cwd=project_dir,
+    )
+
+    assert exit_code == 0, output
+    assert (
+        f"--mount type=bind,src={gitconfig.as_posix()},"
+        f"dst={container_project_path(gitconfig)}" in output
+    )
+    assert (
+        f"--mount type=bind,src={workspace.as_posix()},"
+        f"dst={container_project_path(workspace)}" in output
+    )
+
 
 def _write_global_gitconfig(home_dir: Path) -> None:
     home_dir.mkdir(parents=True, exist_ok=True)

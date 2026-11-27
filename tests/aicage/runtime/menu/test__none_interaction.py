@@ -94,7 +94,8 @@ class ConfigureRunTests(TestCase):
                 "aicage.runtime.menu._none_interaction.apply_mount_preferences"
             ) as mount_mock,
         ):
-            resolved.configure_run(draft, _build_context(), "codex")
+            context = _build_context()
+            resolved.configure_run(draft, context, "codex")
 
         mount_mock.assert_not_called()
         self.assertEqual({"gh": True}, draft.agent_cfg.extension_mounts)
@@ -187,6 +188,38 @@ class ConfigureRunTests(TestCase):
 
         disable_git_mounts_mock.assert_called_once_with(draft.agent_cfg)
 
+    def test_configure_run_applies_cli_credential_preferences(self) -> None:
+        resolved = _none_interaction._NoneInteraction(mock.Mock())
+        draft = _build_draft(
+            AgentConfig(base="ubuntu"),
+            ParsedArgs(
+                False,
+                "",
+                "codex",
+                [],
+                False,
+                [],
+                menu="none",
+                ssh=True,
+                gpg=False,
+            ),
+        )
+        selection = mock.Mock()
+        selection.base = "ubuntu"
+
+        with (
+            mock.patch(
+                "aicage.runtime.menu._none_interaction.select_agent_image",
+                return_value=selection,
+            ),
+            mock.patch.object(draft, "apply_selection"),
+            mock.patch("aicage.runtime.menu._none_interaction.apply_mount_preferences"),
+        ):
+            resolved.configure_run(draft, _build_context(), "codex")
+
+        self.assertTrue(draft.agent_cfg.mounts.ssh)
+        self.assertFalse(draft.agent_cfg.mounts.gnupg)
+
 
 class ExecuteImageSetupTests(TestCase):
     def test_execute_image_setup(self) -> None:
@@ -202,6 +235,17 @@ class ExecuteImageSetupTests(TestCase):
             update_approved=True,
             reporter=reporter,
         )
+
+
+class ExecuteOperationTests(TestCase):
+    def test_execute_operation(self) -> None:
+        reporter = mock.Mock()
+        resolved = _none_interaction._NoneInteraction(reporter)
+        operation = mock.Mock()
+
+        resolved.execute_operation(operation)
+
+        operation.assert_called_once_with(reporter)
 
 
 class RuntimeUpdateTests(TestCase):

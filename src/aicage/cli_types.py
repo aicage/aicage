@@ -16,6 +16,8 @@ class ParsedArgs:
     menu: MenuMode = "ui"
     extensions: list[str] = field(default_factory=list)
     git: bool | None = None
+    ssh: bool | None = None
+    gpg: bool | None = None
     base: str | None = None
     acp_wsl: bool = False
 

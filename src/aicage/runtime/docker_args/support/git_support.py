@@ -1,34 +1,17 @@
-from dataclasses import dataclass
 from pathlib import Path
 from typing import Protocol
 
 from aicage.config.project_config import (
     MOUNT_GITCONFIG_KEY,
     MOUNT_GITROOT_KEY,
-    MOUNT_GNUPG_KEY,
-    MOUNT_SSH_KEY,
 )
-from aicage.paths import HOST_GNUPG_DIR, HOST_SSH_DIR
 
 from ._exec import capture_stdout
-from .signing import is_commit_signing_enabled, resolve_signing_format
-
-_REMOTE_WITH_URL_FIELD_COUNT: int = 2
-_REMOTE_URL_INDEX: int = 1
-
-
-@dataclass(frozen=True)
-class _GitSupportPromptItem:
-    key: str
-    label: str
-    path: Path
 
 
 class _MountPrefs(Protocol):
     gitconfig: bool | None
     gitroot: bool | None
-    gnupg: bool | None
-    ssh: bool | None
 
 
 def resolve_git_config_path() -> Path | None:
@@ -65,94 +48,49 @@ def _resolve_git_path(command: list[str], project_path: Path) -> Path | None:
     return Path(value).resolve()
 
 
-def resolve_gpg_home() -> Path | None:
-    stdout = capture_stdout(["gpgconf", "--list-dirs", "homedir"])
-    if stdout:
-        path = stdout.strip()
-        if path:
-            gpg_home = Path(path).expanduser()
-            if gpg_home.exists():
-                return gpg_home
-    fallback = HOST_GNUPG_DIR
-    return fallback if fallback.exists() else None
-
-
-def resolve_ssh_dir() -> Path:
-    return HOST_SSH_DIR
-
-
-def uses_ssh_remotes(project_path: Path) -> bool:
-    stdout = capture_stdout(["git", "remote", "-v"], cwd=project_path)
-    if not stdout:
-        return False
-    for line in stdout.splitlines():
-        fields = line.split()
-        if len(fields) < _REMOTE_WITH_URL_FIELD_COUNT:
-            continue
-        remote_url = fields[_REMOTE_URL_INDEX]
-        if remote_url.startswith("ssh://") or "@" in remote_url:
-            return True
-    return False
-
-
 def _git_support_prompt_items(
     project_path: Path,
     mounts_cfg: _MountPrefs,
 ) -> list[tuple[str, str]]:
-    git_items: list[_GitSupportPromptItem] = []
+    git_items: list[tuple[str, str]] = []
 
     git_config = resolve_git_config_path()
     if git_config and git_config.exists() and mounts_cfg.gitconfig is None:
         git_items.append(
-            _GitSupportPromptItem(
-                MOUNT_GITCONFIG_KEY, "Git config (name/email)", git_config
+            (
+                MOUNT_GITCONFIG_KEY,
+                f"Git config (name/email): {git_config}",
             )
         )
 
     git_root = resolve_git_root(project_path)
     if git_root and git_root != project_path and mounts_cfg.gitroot is None:
         git_items.append(
-            _GitSupportPromptItem(
-                MOUNT_GITROOT_KEY, "Git root (repository access)", git_root
+            (
+                MOUNT_GITROOT_KEY,
+                f"Git root (repository access): {git_root}",
             )
         )
 
-    signing_enabled = is_commit_signing_enabled(project_path)
-    signing_format = resolve_signing_format(project_path) if signing_enabled else None
-    ssh_needed = (signing_enabled and signing_format == "ssh") or uses_ssh_remotes(
-        project_path
-    )
-
-    if ssh_needed and mounts_cfg.ssh is None:
-        ssh_dir = resolve_ssh_dir()
-        if ssh_dir.exists():
-            git_items.append(
-                _GitSupportPromptItem(
-                    MOUNT_SSH_KEY,
-                    "SSH keys (for Git SSH/signing)",
-                    ssh_dir,
-                )
-            )
-
-    needs_gnupg = signing_enabled and signing_format != "ssh"
-    if needs_gnupg and mounts_cfg.gnupg is None:
-        gpg_home = resolve_gpg_home()
-        if gpg_home and gpg_home.exists():
-            git_items.append(
-                _GitSupportPromptItem(
-                    MOUNT_GNUPG_KEY,
-                    "GnuPG keys (for Git signing)",
-                    gpg_home,
-                )
-            )
-    return [(item.key, f"{item.label}: {item.path}") for item in git_items]
+    return git_items
 
 
-def git_mount_defaults(project_path: Path, mounts_cfg: _MountPrefs) -> set[str]:
+def git_mount_defaults(
+    project_path: Path,
+    mounts_cfg: _MountPrefs,
+    *,
+    override_existing: bool = False,
+) -> set[str]:
+    """Return detected Git mounts that should be enabled for this run.
+
+    An explicit ``--git`` request must take precedence over a saved ``false``
+    value.  Ordinary default selection, by contrast, leaves an explicit saved
+    value alone.
+    """
     return {
         key
         for key in detected_git_mounts(project_path)
-        if getattr(mounts_cfg, key) is None
+        if override_existing or getattr(mounts_cfg, key) is None
     }
 
 
@@ -168,5 +106,3 @@ def detected_git_mounts(project_path: Path) -> set[str]:
 class _UnsetMountPrefs:
     gitconfig: bool | None = None
     gitroot: bool | None = None
-    gnupg: bool | None = None
-    ssh: bool | None = None

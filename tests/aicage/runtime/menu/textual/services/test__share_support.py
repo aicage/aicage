@@ -69,20 +69,12 @@ class ShareSupportTests(TestCase):
                 return_value=Path("/repo"),
             ),
             mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.is_commit_signing_enabled",
+                "aicage.runtime.menu.textual.services._share_support._has_ssh_keys",
                 return_value=False,
             ),
             mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.resolve_signing_format",
-                return_value=None,
-            ),
-            mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.uses_ssh_remotes",
+                "aicage.runtime.menu.textual.services._share_support.has_gpg_keys",
                 return_value=False,
-            ),
-            mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.resolve_ssh_dir",
-                return_value=Path("/test-tmp/ssh"),
             ),
             mock.patch("pathlib.Path.exists", return_value=True),
         ):
@@ -174,7 +166,7 @@ class ShareSupportTests(TestCase):
             [item for item in values if item.source == BuiltInShareSource.EXTENSION],
         )
 
-    def test_built_in_share_values_includes_ssh_mount_when_ssh_signing_enabled(
+    def test_built_in_share_values_includes_ssh_mount_when_keys_are_available(
         self,
     ) -> None:
         draft = _build_draft(
@@ -192,22 +184,13 @@ class ShareSupportTests(TestCase):
                 return_value=None,
             ),
             mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.is_commit_signing_enabled",
+                "aicage.runtime.menu.textual.services._share_support._has_ssh_keys",
                 return_value=True,
             ),
             mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.resolve_signing_format",
-                return_value="ssh",
-            ),
-            mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.uses_ssh_remotes",
+                "aicage.runtime.menu.textual.services._share_support.has_gpg_keys",
                 return_value=False,
             ),
-            mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.resolve_ssh_dir",
-                return_value=Path("/test-tmp/ssh"),
-            ),
-            mock.patch("pathlib.Path.exists", return_value=True),
         ):
             values = _share_support.built_in_share_values(
                 draft, _build_context().extensions
@@ -215,17 +198,17 @@ class ShareSupportTests(TestCase):
 
         self.assertIn(
             BuiltInShareValue(
-                BuiltInShareSource.GIT_SUPPORT,
+                BuiltInShareSource.CREDENTIALS,
                 "ssh",
-                "SSH",
-                str(Path("/test-tmp/ssh")),
+                "SSH keys",
+                "SSH socket",
                 None,
                 True,
             ),
             values,
         )
 
-    def test_built_in_share_values_includes_gnupg_mount_when_non_ssh_signing_enabled(
+    def test_built_in_share_values_includes_gnupg_mount_when_keys_are_available(
         self,
     ) -> None:
         draft = _build_draft(
@@ -243,22 +226,17 @@ class ShareSupportTests(TestCase):
                 return_value=None,
             ),
             mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.is_commit_signing_enabled",
-                return_value=True,
-            ),
-            mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.resolve_signing_format",
-                return_value="openpgp",
-            ),
-            mock.patch(
-                "aicage.runtime.menu.textual.services._share_support.uses_ssh_remotes",
+                "aicage.runtime.menu.textual.services._share_support._has_ssh_keys",
                 return_value=False,
+            ),
+            mock.patch(
+                "aicage.runtime.menu.textual.services._share_support.has_gpg_keys",
+                return_value=True,
             ),
             mock.patch(
                 "aicage.runtime.menu.textual.services._share_support.resolve_gpg_home",
                 return_value=Path("/test-tmp/gnupg"),
             ),
-            mock.patch("pathlib.Path.exists", return_value=True),
         ):
             values = _share_support.built_in_share_values(
                 draft, _build_context().extensions
@@ -266,10 +244,10 @@ class ShareSupportTests(TestCase):
 
         self.assertIn(
             BuiltInShareValue(
-                BuiltInShareSource.GIT_SUPPORT,
+                BuiltInShareSource.CREDENTIALS,
                 "gnupg",
-                "GnuPG",
-                str(Path("/test-tmp/gnupg")),
+                "GnuPG keys",
+                "GnuPG socket",
                 None,
                 True,
             ),

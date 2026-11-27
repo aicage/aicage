@@ -1,3 +1,5 @@
+from collections.abc import Callable
+
 from textual import work
 from textual.app import ComposeResult
 
@@ -7,6 +9,7 @@ from aicage._execution_cleanup import (
 )
 from aicage.config.run_config import RunConfig
 from aicage.registry.ensure_image import ensure_image
+from aicage.reporting import OperationReporter
 
 from ._textual_app import TextualApp
 from .services.execution_reporting import ExecutionReporter
@@ -16,14 +19,16 @@ from .views.execution_screen import ExecutionScreen
 class ExecutionApp(TextualApp[BaseException | None]):
     def __init__(
         self,
-        run_config: RunConfig,
+        run_config: RunConfig | None,
         update_approved: bool,
         reporter: ExecutionReporter,
+        operation: Callable[[OperationReporter], None] | None = None,
     ) -> None:
         super().__init__("container setup")
         self._run_config = run_config
         self._update_approved = update_approved
         self._reporter = reporter
+        self._operation = operation
 
     def compose(self) -> ComposeResult:
         yield ExecutionScreen()
@@ -43,11 +48,16 @@ class ExecutionApp(TextualApp[BaseException | None]):
         error: BaseException | None = None
         try:
             with current_execution_cleanup():
-                ensure_image(
-                    self._run_config,
-                    update_approved=self._update_approved,
-                    reporter=self._reporter,
-                )
+                if self._operation is not None:
+                    self._operation(self._reporter)
+                else:
+                    if self._run_config is None:
+                        raise RuntimeError("Image setup requires a run configuration.")
+                    ensure_image(
+                        self._run_config,
+                        update_approved=self._update_approved,
+                        reporter=self._reporter,
+                    )
         except BaseException as exc:
             error = exc
         self.call_from_thread(self.exit, error)

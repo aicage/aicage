@@ -13,7 +13,7 @@ class LayoutTests(TestCase):
         width = _layout.shell_width(
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "ssh",
                     "SSH",
                     "/test-tmp/.ssh",

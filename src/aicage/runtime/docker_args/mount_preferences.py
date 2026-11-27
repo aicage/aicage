@@ -13,6 +13,8 @@ from aicage.config.project_config import (
     MOUNT_SSH_KEY,
     AgentConfig,
 )
+from aicage.gpg import has_gpg_keys, resolve_gpg_home
+from aicage.runtime._ssh_agent import _has_ssh_keys
 
 from .support.git_support import git_mount_defaults
 from .support.mount_prompt import (
@@ -60,17 +62,36 @@ def apply_extension_mount_defaults(
 
 def apply_git_mount_defaults(context: ConfigContext, agent_cfg: AgentConfig) -> None:
     for key in git_mount_defaults(
-        Path(context.project_cfg.path).resolve(), agent_cfg.mounts
+        Path(context.project_cfg.path).resolve(),
+        agent_cfg.mounts,
+        override_existing=True,
     ):
         setattr(agent_cfg.mounts, key, True)
+
+
+def apply_credential_mount_defaults(agent_cfg: AgentConfig) -> None:
+    if _ssh_mount_default(agent_cfg):
+        agent_cfg.mounts.ssh = True
+    if _gnupg_mount_default(agent_cfg):
+        agent_cfg.mounts.gnupg = True
+
+
+def apply_cli_credential_mount_preferences(
+    agent_cfg: AgentConfig,
+    parsed: ParsedArgs | None,
+) -> None:
+    if parsed is None:
+        return
+    if parsed.ssh is not None:
+        agent_cfg.mounts.ssh = parsed.ssh
+    if parsed.gpg is not None:
+        agent_cfg.mounts.gnupg = parsed.gpg
 
 
 def disable_git_mounts(agent_cfg: AgentConfig) -> None:
     for key in (
         MOUNT_GITCONFIG_KEY,
         MOUNT_GITROOT_KEY,
-        MOUNT_GNUPG_KEY,
-        MOUNT_SSH_KEY,
     ):
         setattr(agent_cfg.mounts, key, False)
 
@@ -89,11 +110,16 @@ def _apply_git_and_extension_mount_preferences(
     for key in (
         MOUNT_GITCONFIG_KEY,
         MOUNT_GITROOT_KEY,
-        MOUNT_GNUPG_KEY,
-        MOUNT_SSH_KEY,
     ):
         if getattr(agent_cfg.mounts, key) is None:
             setattr(agent_cfg.mounts, key, key in mount_prompt_prefs.git_mounts)
+    for key in (MOUNT_GNUPG_KEY, MOUNT_SSH_KEY):
+        if getattr(agent_cfg.mounts, key) is None:
+            setattr(
+                agent_cfg.mounts,
+                key,
+                key in mount_prompt_prefs.credential_mounts,
+            )
     agent_cfg.extension_mounts.update(mount_prompt_prefs.extension_mounts)
 
 
@@ -110,3 +136,15 @@ def _apply_docker_socket_preference(
         return
     if confirm_persist_docker_socket():
         setattr(agent_cfg.mounts, MOUNT_DOCKER_KEY, True)
+
+
+def _ssh_mount_default(agent_cfg: AgentConfig) -> bool:
+    return agent_cfg.mounts.ssh is None and _has_ssh_keys()
+
+
+def _gnupg_mount_default(agent_cfg: AgentConfig) -> bool:
+    return (
+        agent_cfg.mounts.gnupg is None
+        and has_gpg_keys()
+        and resolve_gpg_home() is not None
+    )

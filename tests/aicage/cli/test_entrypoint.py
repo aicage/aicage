@@ -1,5 +1,6 @@
 import io
 import tempfile
+from contextlib import nullcontext
 from pathlib import Path
 from unittest import TestCase, mock
 
@@ -159,8 +160,8 @@ class EntrypointTests(TestCase):
                 "aicage.cli.entrypoint.load_run_config", return_value=run_config
             ),
             mock.patch(
-                "aicage.cli.entrypoint.build_run_args",
-                return_value=_build_run_args("repo:tag", "", []),
+                "aicage.cli.entrypoint.prepare_run_args",
+                return_value=nullcontext(_build_run_args("repo:tag", "", [])),
             ),
             mock.patch("aicage.cli.entrypoint.prepare_image") as prepare_image_mock,
             mock.patch("aicage.cli.entrypoint.run_container") as run_container_mock,
@@ -171,6 +172,69 @@ class EntrypointTests(TestCase):
         create_interaction_mock.assert_called_once_with("ui")
         prepare_image_mock.assert_called_once_with(run_config, interaction)
         run_container_mock.assert_called_once()
+
+    def test_main_prepares_credential_image_before_credentials(self) -> None:
+        run_config = _build_run_config(Path("/test-tmp/project"), "repo:tag")
+        interaction = mock.Mock()
+        credential_plan = mock.Mock()
+        credentials = mock.Mock()
+        calls: list[str] = []
+
+        def plan_credentials(*_args: object) -> mock.Mock:
+            calls.append("plan")
+            return credential_plan
+
+        def prepare_credential_image(*_args: object) -> None:
+            calls.append("credential image")
+
+        def prepare_credentials(*_args: object, **_kwargs: object) -> mock.Mock:
+            calls.append("credentials")
+            return credentials
+
+        def prepare_image(*_args: object) -> None:
+            calls.append("target image")
+
+        with (
+            mock.patch(
+                "aicage.cli.entrypoint.parse_cli",
+                return_value=ParsedArgs(False, "", "codex", [], False, [], "ui"),
+            ),
+            mock.patch("aicage.cli.entrypoint.maybe_prompt_update", return_value=False),
+            mock.patch(
+                "aicage.cli.entrypoint.create_runtime_interaction",
+                return_value=interaction,
+            ),
+            mock.patch(
+                "aicage.cli.entrypoint.load_run_config", return_value=run_config
+            ),
+            mock.patch(
+                "aicage.cli.entrypoint.plan_credentials",
+                side_effect=plan_credentials,
+            ),
+            mock.patch(
+                "aicage.cli.entrypoint.prepare_credential_image",
+                side_effect=prepare_credential_image,
+            ),
+            mock.patch(
+                "aicage.cli.entrypoint.prepare_credentials",
+                side_effect=prepare_credentials,
+            ),
+            mock.patch(
+                "aicage.cli.entrypoint.prepare_image",
+                side_effect=prepare_image,
+            ),
+            mock.patch(
+                "aicage.cli.entrypoint.prepare_run_args",
+                return_value=nullcontext(_build_run_args("repo:tag", "", [])),
+            ),
+            mock.patch("aicage.cli.entrypoint.run_container"),
+        ):
+            exit_code = main(["codex"])
+
+        self.assertEqual(0, exit_code)
+        self.assertEqual(
+            ["plan", "credential image", "credentials", "target image"], calls
+        )
 
     def test_main_config_remove_with_agent(self) -> None:
         with (
@@ -256,7 +320,8 @@ class EntrypointTests(TestCase):
                     "aicage.cli.entrypoint.load_run_config", return_value=run_config
                 ),
                 mock.patch(
-                    "aicage.cli.entrypoint.build_run_args", return_value=run_args
+                    "aicage.cli.entrypoint.prepare_run_args",
+                    return_value=nullcontext(run_args),
                 ),
                 mock.patch("aicage.cli.entrypoint.prepare_image") as prepare_image_mock,
                 mock.patch("aicage.cli.entrypoint.run_container") as run_mock,
@@ -298,7 +363,8 @@ class EntrypointTests(TestCase):
                     "aicage.cli.entrypoint.load_run_config", return_value=run_config
                 ),
                 mock.patch(
-                    "aicage.cli.entrypoint.build_run_args", return_value=run_args
+                    "aicage.cli.entrypoint.prepare_run_args",
+                    return_value=nullcontext(run_args),
                 ),
                 mock.patch("aicage.cli.entrypoint.prepare_image") as prepare_image_mock,
                 mock.patch("aicage.cli.entrypoint.run_container"),

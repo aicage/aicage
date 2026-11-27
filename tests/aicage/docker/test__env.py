@@ -20,7 +20,7 @@ class EnvTests(TestCase):
             ),
             mock.patch("aicage.docker._env.os.name", "posix"),
             mock.patch(
-                "aicage.docker._env._is_rootless_docker",
+                "aicage.docker._env.is_rootless_docker",
                 return_value=False,
             ),
         ):
@@ -58,7 +58,7 @@ class EnvTests(TestCase):
             ),
             mock.patch("aicage.docker._env.os.name", "posix"),
             mock.patch(
-                "aicage.docker._env._is_rootless_docker",
+                "aicage.docker._env.is_rootless_docker",
                 return_value=False,
             ),
         ):
@@ -100,7 +100,7 @@ class EnvTests(TestCase):
             ),
             mock.patch("aicage.docker._env.os.name", "posix"),
             mock.patch(
-                "aicage.docker._env._is_rootless_docker",
+                "aicage.docker._env.is_rootless_docker",
                 return_value=True,
             ),
         ):

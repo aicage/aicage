@@ -1,5 +1,7 @@
 from unittest import TestCase, mock
 
+from textual.containers import VerticalGroup
+
 from aicage.runtime.menu.textual._models import (
     BuiltInShareSource,
     BuiltInShareValue,
@@ -10,22 +12,31 @@ from aicage.runtime.menu.textual.views.overview import _shares
 
 
 class SharesOverviewTests(TestCase):
-    def test_is_git_support_button_identifies_git_support_button(self) -> None:
-        self.assertTrue(_shares.is_git_support_button("git_mount_ssh"))
-        self.assertFalse(_shares.is_git_support_button("add_share"))
+    def test_host_access_button_key_identifies_host_access_button(self) -> None:
+        self.assertEqual(
+            (BuiltInShareSource.GIT_SUPPORT, "gitconfig"),
+            _shares.host_access_button_key("git_mount_gitconfig"),
+        )
+        self.assertEqual(
+            (BuiltInShareSource.CREDENTIALS, "ssh"),
+            _shares.host_access_button_key("credential_mount_ssh"),
+        )
 
-    def test_git_support_key_returns_mount_key(self) -> None:
-        self.assertEqual("ssh", _shares.git_support_key("git_mount_ssh"))
-
-    def test_next_git_support_value_cycles_auto_on_off(self) -> None:
-        self.assertTrue(_shares.next_git_support_value(None))
-        self.assertFalse(_shares.next_git_support_value(True))
-        self.assertIsNone(_shares.next_git_support_value(False))
+    def test_next_mount_value_cycles_auto_on_off(self) -> None:
+        self.assertTrue(_shares.next_mount_value(None))
+        self.assertFalse(_shares.next_mount_value(True))
+        self.assertIsNone(_shares.next_mount_value(False))
 
     def test_share_widgets_builds_widgets(self) -> None:
         widgets = _shares.share_widgets(OverviewState(None, [], [], False))
 
         self.assertEqual(2, len(widgets))
+
+    def test_share_widgets_uses_non_expanding_groups_for_host_access(self) -> None:
+        widgets = _shares.share_widgets(OverviewState(None, [], [], False), True)
+
+        self.assertIsInstance(widgets[1], VerticalGroup)
+        self.assertIsInstance(widgets[2], VerticalGroup)
 
     def test_refresh_shares_updates_visible_widgets(self) -> None:
         container = mock.Mock()
@@ -45,7 +56,7 @@ class SharesOverviewTests(TestCase):
             None,
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "ssh",
                     "SSH",
                     "/test-tmp/.ssh",
@@ -103,7 +114,7 @@ class SharesOverviewTests(TestCase):
             None,
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "ssh",
                     "SSH",
                     "/test-tmp/.ssh",
@@ -119,7 +130,7 @@ class SharesOverviewTests(TestCase):
 
         selection_list.add_options.assert_called_once_with(
             [
-                ("SSH: /test-tmp/.ssh", "builtin:git_support:ssh", True),
+                ("SSH: /test-tmp/.ssh", "builtin:credentials:ssh", True),
                 ("   : /test-tmp/logs", "custom:/test-tmp/logs", True),
             ]
         )
@@ -128,7 +139,7 @@ class SharesOverviewTests(TestCase):
         values = _shares.merge_built_in_shares(
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "ssh",
                     "SSH",
                     "/test-tmp/.ssh",
@@ -138,7 +149,7 @@ class SharesOverviewTests(TestCase):
             ],
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "ssh",
                     "SSH",
                     "/test-tmp/.ssh",
@@ -151,7 +162,7 @@ class SharesOverviewTests(TestCase):
         self.assertEqual(
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "ssh",
                     "SSH",
                     "/test-tmp/.ssh",
@@ -166,7 +177,7 @@ class SharesOverviewTests(TestCase):
         values = _shares.merge_built_in_shares(
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "gnupg",
                     "GnuPG",
                     "/test-tmp/gnupg",
@@ -176,7 +187,7 @@ class SharesOverviewTests(TestCase):
             ],
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "gnupg",
                     "GnuPG",
                     "/test-tmp/gnupg",

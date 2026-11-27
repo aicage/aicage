@@ -1,3 +1,4 @@
+from collections.abc import Callable
 from copy import deepcopy
 
 from aicage.config.context import ConfigContext
@@ -29,7 +30,7 @@ class TextualInteraction:
         agent: str,
     ) -> ConfigSelectionResult | ConfigScopeChange:
         del agent  # Textual reads agent from draft.agent.
-        return _edit_draft_with_textual_app(draft, context)
+        return _edit_draft_with_textual_app(draft, context, self._reporter)
 
     def confirm_aicage_update(
         self,
@@ -53,15 +54,21 @@ class TextualInteraction:
         if isinstance(result, BaseException):
             raise result
 
+    def execute_operation(self, operation: Callable[[OperationReporter], None]) -> None:
+        result = ExecutionApp(None, False, self._reporter, operation).run(inline=True)
+        if isinstance(result, BaseException):
+            raise result
+
 
 def _edit_draft_with_textual_app(
     draft: RunConfigDraft,
     context: ConfigContext,
+    reporter: ExecutionReporter,
 ) -> ConfigSelectionResult | ConfigScopeChange:
     original_project_cfg = deepcopy(draft.project_cfg)
     original_parsed = deepcopy(draft.parsed)
     draft.prefill_for_overview()
-    result = ConfigApp(draft, context).run(inline=True)
+    result = ConfigApp(draft, context, reporter).run(inline=True)
     if result is None:
         draft.project_cfg.path = original_project_cfg.path
         draft.project_cfg.agents = original_project_cfg.agents

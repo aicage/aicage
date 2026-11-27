@@ -4,7 +4,18 @@ from pathlib import Path, PurePosixPath
 from unittest import TestCase, mock
 
 from aicage.docker import run
-from aicage.runtime.run_args import BindMountSpec, DockerRunArgs, EnvVar
+from aicage.runtime.credential_agent._resource_models import (
+    _CredentialProtocol,
+)
+from aicage.runtime.credential_agent._resource_models import (
+    _resources as _credential_resources,
+)
+from aicage.runtime.run_args import (
+    BindMountSpec,
+    DockerRunArgs,
+    EnvVar,
+    VolumeMountSpec,
+)
 
 
 class RunCommandTests(TestCase):
@@ -172,6 +183,29 @@ class RunCommandTests(TestCase):
         container_mount = PurePosixPath("/opt/one").as_posix()
         self.assertIn(f"type=bind,src={host_mount},dst={container_mount},readonly", cmd)
         self.assertNotIn("AICAGE_AGENT_CONFIG_PATH", " ".join(cmd))
+
+    def test_assemble_includes_a_volume_mount(self) -> None:
+        volume_name = _credential_resources([_CredentialProtocol.SSH])[0].volume_name
+        with mock.patch("aicage.docker.run.resolve_user_ids", return_value=[]):
+            cmd = run._assemble_docker_run(
+                DockerRunArgs(
+                    image_ref="ghcr.io/aicage/aicage:codex-ubuntu",
+                    merged_docker_args="",
+                    agent_args=[],
+                    mounts=[
+                        VolumeMountSpec(
+                            volume_name=volume_name,
+                            container_path=PurePosixPath("/run/credentials"),
+                            read_only=True,
+                        )
+                    ],
+                )
+            )
+
+        self.assertIn(
+            f"type=volume,src={volume_name},dst=/run/credentials,readonly",
+            cmd,
+        )
 
     def test_assemble_uses_interactive_tty_when_stdin_is_tty(self) -> None:
         with (

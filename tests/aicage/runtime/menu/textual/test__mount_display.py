@@ -2,7 +2,11 @@ from unittest import TestCase
 
 from textual.widgets.selection_list import Selection
 
-from aicage.config.project_config import MOUNT_GITCONFIG_KEY
+from aicage.config.project_config import (
+    MOUNT_GITCONFIG_KEY,
+    MOUNT_GNUPG_KEY,
+    MOUNT_SSH_KEY,
+)
 from aicage.runtime.menu.textual import _mount_display
 from aicage.runtime.menu.textual._models import (
     BuiltInShareSource,
@@ -12,6 +16,9 @@ from aicage.runtime.menu.textual._models import (
 
 
 class MountDisplayTests(TestCase):
+    def test_credential_label_returns_known_label(self) -> None:
+        self.assertEqual("SSH keys", _mount_display.credential_label(MOUNT_SSH_KEY))
+
     def test_git_support_label_returns_known_label(self) -> None:
         value = _mount_display.git_support_label(MOUNT_GITCONFIG_KEY)
 
@@ -22,6 +29,16 @@ class MountDisplayTests(TestCase):
 
         self.assertEqual("Git configuration (identity, aliases, and settings)", value)
 
+    def test_credential_config_label_describes_ssh_keys(self) -> None:
+        value = _mount_display.credential_config_label(MOUNT_SSH_KEY)
+
+        self.assertEqual("SSH keys : SSH socket", value)
+
+    def test_credential_config_label_describes_gnupg_keys(self) -> None:
+        value = _mount_display.credential_config_label(MOUNT_GNUPG_KEY)
+
+        self.assertEqual("GnuPG keys : GnuPG socket", value)
+
     def test_extension_label_returns_prefixed_label(self) -> None:
         value = _mount_display.extension_label("gh")
 
@@ -31,7 +48,7 @@ class MountDisplayTests(TestCase):
         values = _mount_display.overview_mount_list_items(
             [
                 BuiltInShareValue(
-                    BuiltInShareSource.GIT_SUPPORT,
+                    BuiltInShareSource.CREDENTIALS,
                     "ssh",
                     "SSH",
                     "/test-tmp/.ssh",
@@ -44,7 +61,7 @@ class MountDisplayTests(TestCase):
 
         self.assertEqual("SSH", values[0].prefix)
         self.assertEqual("/test-tmp/.ssh", values[0].path)
-        self.assertEqual("builtin:git_support:ssh", values[0].selection_key)
+        self.assertEqual("builtin:credentials:ssh", values[0].selection_key)
         self.assertTrue(values[0].enabled)
         self.assertEqual("Read-only", values[1].prefix)
         self.assertEqual("/test-tmp/logs", values[1].path)
@@ -80,20 +97,20 @@ class MountDisplayTests(TestCase):
             _mount_display.confirm_mount_list_items(
                 [
                     BuiltInShareValue(
-                        BuiltInShareSource.GIT_SUPPORT, "ssh", "SSH", None, None, True
+                        BuiltInShareSource.CREDENTIALS, "ssh", "SSH", None, None, True
                     )
                 ]
             )
         )
 
-        self.assertEqual([("SSH", "builtin:git_support:ssh", True)], rows)
+        self.assertEqual([("SSH", "builtin:credentials:ssh", True)], rows)
 
     def test_mount_selection_rows_aligns_prefixes(self) -> None:
         rows = _mount_display.mount_selection_rows(
             _mount_display.overview_mount_list_items(
                 [
                     BuiltInShareValue(
-                        BuiltInShareSource.GIT_SUPPORT,
+                        BuiltInShareSource.CREDENTIALS,
                         "ssh",
                         "SSH",
                         "/test-tmp/.ssh",
@@ -107,7 +124,7 @@ class MountDisplayTests(TestCase):
 
         self.assertEqual(
             [
-                ("SSH: /test-tmp/.ssh", "builtin:git_support:ssh", True),
+                ("SSH: /test-tmp/.ssh", "builtin:credentials:ssh", True),
                 ("   : /test-tmp/data", "custom:/test-tmp/data", True),
             ],
             rows,

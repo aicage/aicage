@@ -176,6 +176,7 @@ class RuntimeConfigTests(TestCase):
 
         interaction.configure_run.assert_called_once()
         store.save_global.assert_called_once_with(config)
+        interaction.execute_operation.assert_not_called()
 
     def test_configure_inherited_config_prefills_cli_values(self) -> None:
         store = mock.Mock()

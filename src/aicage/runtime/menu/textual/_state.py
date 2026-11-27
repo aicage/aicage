@@ -10,4 +10,5 @@ class OverviewState:
     custom_shares: list[CustomShareValue]
     docker_socket_enabled: bool
     docker_socket_inherited: bool = False
-    git_support_values: dict[str, bool | None] = field(default_factory=dict)
+    git_values: dict[str, bool | None] = field(default_factory=dict)
+    credential_values: dict[str, bool | None] = field(default_factory=dict)

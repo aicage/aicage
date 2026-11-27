@@ -3,6 +3,7 @@ from pathlib import Path
 from unittest import TestCase, mock
 
 from aicage.docker.build import _common
+from aicage.docker.errors import DockerError
 
 from ..._run_config_fixtures import build_run_config as _build_run_config
 
@@ -18,6 +19,19 @@ class CommonBuildTests(TestCase):
         )
 
         self.assertEqual(Path("/test-tmp/build"), context_dir)
+
+    def test_build_context_dir_uses_the_agent_definition_parent_for_external_definitions(
+        self,
+    ) -> None:
+        run_config = _build_run_config(
+            local_definition_dir=Path("/test-tmp/agents/claude")
+        )
+
+        context_dir = _common.build_context_dir(
+            run_config, Path("/test-tmp/build/Dockerfile")
+        )
+
+        self.assertEqual(Path("/test-tmp"), context_dir)
 
     def test_run_build_command(self) -> None:
         reporter = mock.Mock()
@@ -51,3 +65,29 @@ class CommonBuildTests(TestCase):
             env={"DOCKER_CLI_HINTS": "false"},
         )
         register_mock.assert_called_once_with(process)
+
+    def test_run_build_command_rejects_a_process_without_stdout(self) -> None:
+        process = mock.Mock()
+        process.stdout = None
+        popen_context = mock.Mock()
+        popen_context.__enter__ = mock.Mock(return_value=process)
+        popen_context.__exit__ = mock.Mock(return_value=None)
+
+        with (
+            mock.patch(
+                "aicage.docker.build._common.subprocess.Popen",
+                return_value=popen_context,
+            ),
+            self.assertRaisesRegex(RuntimeError, "did not provide stdout"),
+        ):
+            _common.run_build_command(["docker", "build"], mock.Mock(), mock.Mock())
+
+    def test_run_build_command_translates_a_missing_docker_cli(self) -> None:
+        with (
+            mock.patch(
+                "aicage.docker.build._common.subprocess.Popen",
+                side_effect=FileNotFoundError,
+            ),
+            self.assertRaisesRegex(DockerError, "Docker CLI not found"),
+        ):
+            _common.run_build_command(["docker", "build"], mock.Mock(), mock.Mock())

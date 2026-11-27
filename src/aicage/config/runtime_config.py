@@ -164,6 +164,7 @@ def _configure_scope(
         )
         if source is not None:
             draft.pending_git_mounts = source.pending_git_mounts
+            draft.pending_credential_mounts = source.pending_credential_mounts
             draft.pending_extension_mounts = source.pending_extension_mounts
             draft.pending_docker_socket = source.pending_docker_socket
         draft.scope = scope
